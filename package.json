@@ -1,0 +1,17 @@
+{
+  "name": "school-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MERN student and teacher record management platform",
+  "scripts": {
+    "dev": "pnpm --parallel --filter client --filter server dev",
+    "dev:client": "pnpm --filter client dev",
+    "dev:server": "pnpm --filter server dev",
+    "build": "pnpm --filter client build",
+    "start": "pnpm --filter server start"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.9.0"
+}
