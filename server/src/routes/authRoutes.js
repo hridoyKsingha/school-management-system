@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { Router } from 'express';
+import jwt from 'jsonwebtoken';
 import Admin from '../models/Admin.js';
 
 const authRouter = Router();
@@ -39,6 +40,36 @@ authRouter.post('/register', async (request, response) => {
     }
 
     return response.status(500).json({ message: 'Unable to create administrator account.' });
+  }
+});
+
+authRouter.post('/login', async (request, response) => {
+  const { email, password } = request.body;
+
+  if (!email?.trim() || !password) {
+    return response.status(400).json({ message: 'Email and password are required.' });
+  }
+
+  if (!process.env.JWT_SECRET) {
+    return response.status(500).json({ message: 'JWT_SECRET is not configured.' });
+  }
+
+  try {
+    const admin = await Admin.findOne({ email: email.trim().toLowerCase() }).select('+password');
+    const passwordMatches = admin && await bcrypt.compare(password, admin.password);
+
+    if (!passwordMatches) {
+      return response.status(401).json({ message: 'Invalid email or password.' });
+    }
+
+    const token = jwt.sign({ adminId: admin.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+    return response.json({
+      token,
+      admin: { id: admin.id, name: admin.name, email: admin.email },
+    });
+  } catch {
+    return response.status(500).json({ message: 'Unable to sign in.' });
   }
 });
 
