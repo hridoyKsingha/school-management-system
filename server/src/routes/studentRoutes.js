@@ -4,6 +4,15 @@ import Student from '../models/Student.js';
 
 const studentRouter = Router();
 
+studentRouter.get('/', requireAdmin, async (_request, response) => {
+  try {
+    const students = await Student.find().sort({ createdAt: -1 });
+    return response.json({ students });
+  } catch {
+    return response.status(500).json({ message: 'Unable to load students.' });
+  }
+});
+
 studentRouter.post('/', requireAdmin, async (request, response) => {
   const {
     studentId,
