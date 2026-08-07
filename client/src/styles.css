@@ -82,7 +82,57 @@ button:disabled { cursor: wait; opacity: .65; }
 
 .form-message { margin: 1.25rem 0 0; color: #1e63b8; font-weight: 650; }
 
+.dashboard-page {
+  min-height: 100vh;
+  padding: 3rem max(2rem, calc((100vw - 1120px) / 2));
+  background: #f7faff;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 4rem;
+}
+
+.dashboard-header h1 { font-size: clamp(2rem, 4vw, 3.4rem); }
+
+.logout-button {
+  margin: 0;
+  padding: .7rem 1rem;
+  background: #e8eff8;
+  color: #1b4c85;
+}
+
+.logout-button:hover:not(:disabled) { background: #d7e5f5; }
+
+.dashboard-overview { max-width: 900px; }
+
+.dashboard-overview h2 { font-size: 1.8rem; }
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.8rem;
+}
+
+.summary-card {
+  padding: 1.5rem;
+  border: 1px solid #dbe5f2;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(32, 71, 119, .07);
+}
+
+.summary-card p { margin: 0; color: #5c6d83; font-weight: 650; }
+.summary-card strong { display: block; margin-top: .45rem; font-size: 2.2rem; }
+
 @media (max-width: 760px) {
   .login-page { grid-template-columns: 1fr; gap: 2.5rem; padding: 2rem 1.25rem; }
   .login-card { padding: 1.6rem; }
+  .dashboard-page { padding: 2rem 1.25rem; }
+  .dashboard-header { align-items: flex-start; flex-direction: column; margin-bottom: 2.5rem; }
+  .summary-grid { grid-template-columns: 1fr; }
 }
