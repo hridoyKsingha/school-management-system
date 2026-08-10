@@ -4,6 +4,15 @@ import Teacher from '../models/Teacher.js';
 
 const teacherRouter = Router();
 
+teacherRouter.get('/', requireAdmin, async (_request, response) => {
+  try {
+    const teachers = await Teacher.find().sort({ createdAt: -1 });
+    return response.json({ teachers });
+  } catch {
+    return response.status(500).json({ message: 'Unable to load teachers.' });
+  }
+});
+
 teacherRouter.post('/', requireAdmin, async (request, response) => {
   const { teacherId, name, subject, assignedClass, phone } = request.body;
 
