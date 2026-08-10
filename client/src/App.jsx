@@ -5,7 +5,7 @@ function getStoredAdmin() {
   return storedAdmin ? JSON.parse(storedAdmin) : null;
 }
 
-function Dashboard({ admin, onLogout }) {
+function Dashboard({ admin, onLogout, onViewStudents }) {
   const [summary, setSummary] = useState(null);
   const [message, setMessage] = useState('Loading dashboard summary...');
 
@@ -45,7 +45,10 @@ function Dashboard({ admin, onLogout }) {
           <p className="eyebrow">School Management System</p>
           <h1>Welcome back, {admin.name}.</h1>
         </div>
-        <button type="button" className="logout-button" onClick={onLogout}>Sign out</button>
+        <div className="header-actions">
+          <button type="button" className="students-button" onClick={onViewStudents}>Students</button>
+          <button type="button" className="logout-button" onClick={onLogout}>Sign out</button>
+        </div>
       </header>
 
       <section className="dashboard-overview" aria-labelledby="overview-title">
@@ -67,12 +70,72 @@ function Dashboard({ admin, onLogout }) {
   );
 }
 
+function StudentList({ onBack }) {
+  const [students, setStudents] = useState([]);
+  const [message, setMessage] = useState('Loading students...');
+
+  useEffect(() => {
+    async function loadStudents() {
+      try {
+        const token = sessionStorage.getItem('schoolAdminToken');
+        const response = await fetch('/api/students', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Unable to load students.');
+        }
+
+        setStudents(data.students);
+        setMessage(data.students.length ? '' : 'No student records yet.');
+      } catch (error) {
+        setMessage(error.message);
+      }
+    }
+
+    loadStudents();
+  }, []);
+
+  return (
+    <main className="records-page">
+      <header className="dashboard-header">
+        <div>
+          <p className="eyebrow">School Management System</p>
+          <h1>Student records</h1>
+        </div>
+        <button type="button" className="logout-button" onClick={onBack}>Back to dashboard</button>
+      </header>
+
+      {message && <p className="form-message" role="status">{message}</p>}
+      {students.length > 0 && (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Name</th><th>Class</th><th>Section</th><th>Roll</th><th>Guardian phone</th></tr>
+            </thead>
+            <tbody>
+              {students.map((student) => (
+                <tr key={student._id}>
+                  <td>{student.studentId}</td><td>{student.name}</td><td>{student.className}</td>
+                  <td>{student.section}</td><td>{student.rollNumber}</td><td>{student.guardianPhone}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </main>
+  );
+}
+
 export default function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [admin, setAdmin] = useState(getStoredAdmin);
+  const [page, setPage] = useState('dashboard');
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -94,6 +157,7 @@ export default function App() {
       sessionStorage.setItem('schoolAdminToken', data.token);
       sessionStorage.setItem('schoolAdmin', JSON.stringify(data.admin));
       setAdmin(data.admin);
+      setPage('dashboard');
       setPassword('');
     } catch (error) {
       setMessage(error.message);
@@ -106,11 +170,14 @@ export default function App() {
     sessionStorage.removeItem('schoolAdminToken');
     sessionStorage.removeItem('schoolAdmin');
     setAdmin(null);
+    setPage('dashboard');
     setMessage('');
   }
 
   if (admin) {
-    return <Dashboard admin={admin} onLogout={handleLogout} />;
+    return page === 'students'
+      ? <StudentList onBack={() => setPage('dashboard')} />
+      : <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} />;
   }
 
   return (
