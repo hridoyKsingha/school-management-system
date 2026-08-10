@@ -88,4 +88,18 @@ studentRouter.put('/:id', requireAdmin, async (request, response) => {
   }
 });
 
+studentRouter.delete('/:id', requireAdmin, async (request, response) => {
+  try {
+    const student = await Student.findByIdAndDelete(request.params.id);
+
+    if (!student) {
+      return response.status(404).json({ message: 'Student not found.' });
+    }
+
+    return response.json({ message: 'Student deleted.' });
+  } catch {
+    return response.status(500).json({ message: 'Unable to delete student.' });
+  }
+});
+
 export default studentRouter;
