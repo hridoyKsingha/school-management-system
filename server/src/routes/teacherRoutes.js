@@ -60,4 +60,18 @@ teacherRouter.put('/:id', requireAdmin, async (request, response) => {
   }
 });
 
+teacherRouter.delete('/:id', requireAdmin, async (request, response) => {
+  try {
+    const teacher = await Teacher.findByIdAndDelete(request.params.id);
+
+    if (!teacher) {
+      return response.status(404).json({ message: 'Teacher not found.' });
+    }
+
+    return response.json({ message: 'Teacher deleted.' });
+  } catch {
+    return response.status(500).json({ message: 'Unable to delete teacher.' });
+  }
+});
+
 export default teacherRouter;
