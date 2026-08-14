@@ -70,7 +70,7 @@ function Dashboard({ admin, onLogout, onViewStudents }) {
   );
 }
 
-function StudentList({ onBack, onAddStudent }) {
+function StudentList({ onBack, onAddStudent, onEditStudent }) {
   const [students, setStudents] = useState([]);
   const [message, setMessage] = useState('Loading students...');
 
@@ -115,13 +115,14 @@ function StudentList({ onBack, onAddStudent }) {
         <div className="table-wrap">
           <table>
             <thead>
-              <tr><th>ID</th><th>Name</th><th>Class</th><th>Section</th><th>Roll</th><th>Guardian phone</th></tr>
+              <tr><th>ID</th><th>Name</th><th>Class</th><th>Section</th><th>Roll</th><th>Guardian phone</th><th>Action</th></tr>
             </thead>
             <tbody>
               {students.map((student) => (
                 <tr key={student._id}>
                   <td>{student.studentId}</td><td>{student.name}</td><td>{student.className}</td>
                   <td>{student.section}</td><td>{student.rollNumber}</td><td>{student.guardianPhone}</td>
+                  <td><button type="button" className="table-button" onClick={() => onEditStudent(student)}>Edit</button></td>
                 </tr>
               ))}
             </tbody>
@@ -132,8 +133,12 @@ function StudentList({ onBack, onAddStudent }) {
   );
 }
 
-function StudentForm({ onBack }) {
-  const [form, setForm] = useState({
+function StudentForm({ onBack, student }) {
+  const isEditing = Boolean(student);
+  const [form, setForm] = useState(() => student ? {
+    studentId: student.studentId, name: student.name, className: student.className, section: student.section,
+    rollNumber: student.rollNumber, dateOfBirth: student.dateOfBirth.slice(0, 10), guardianPhone: student.guardianPhone, address: student.address,
+  } : {
     studentId: '', name: '', className: '', section: '', rollNumber: '', dateOfBirth: '', guardianPhone: '', address: '',
   });
   const [message, setMessage] = useState('');
@@ -150,8 +155,8 @@ function StudentForm({ onBack }) {
 
     try {
       const token = sessionStorage.getItem('schoolAdminToken');
-      const response = await fetch('/api/students', {
-        method: 'POST',
+      const response = await fetch(isEditing ? `/api/students/${student._id}` : '/api/students', {
+        method: isEditing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
       });
@@ -161,8 +166,10 @@ function StudentForm({ onBack }) {
         throw new Error(data.message || 'Unable to add student.');
       }
 
-      setMessage('Student added successfully.');
-      setForm({ studentId: '', name: '', className: '', section: '', rollNumber: '', dateOfBirth: '', guardianPhone: '', address: '' });
+      setMessage(isEditing ? 'Student updated successfully.' : 'Student added successfully.');
+      if (!isEditing) {
+        setForm({ studentId: '', name: '', className: '', section: '', rollNumber: '', dateOfBirth: '', guardianPhone: '', address: '' });
+      }
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -173,7 +180,7 @@ function StudentForm({ onBack }) {
   return (
     <main className="records-page">
       <header className="dashboard-header">
-        <div><p className="eyebrow">School Management System</p><h1>Add student</h1></div>
+        <div><p className="eyebrow">School Management System</p><h1>{isEditing ? 'Edit student' : 'Add student'}</h1></div>
         <button type="button" className="logout-button" onClick={onBack}>Back to students</button>
       </header>
       <form className="record-form" onSubmit={handleSubmit}>
@@ -185,7 +192,7 @@ function StudentForm({ onBack }) {
         <label>Date of birth<input type="date" name="dateOfBirth" value={form.dateOfBirth} onChange={updateField} required /></label>
         <label>Guardian phone<input name="guardianPhone" value={form.guardianPhone} onChange={updateField} required /></label>
         <label className="full-width">Address<input name="address" value={form.address} onChange={updateField} required /></label>
-        <button type="submit" className="full-width" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Add student'}</button>
+        <button type="submit" className="full-width" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : isEditing ? 'Save changes' : 'Add student'}</button>
       </form>
       {message && <p className="form-message" role="status">{message}</p>}
     </main>
@@ -199,6 +206,7 @@ export default function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [admin, setAdmin] = useState(getStoredAdmin);
   const [page, setPage] = useState('dashboard');
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -239,10 +247,13 @@ export default function App() {
 
   if (admin) {
     if (page === 'students') {
-      return <StudentList onBack={() => setPage('dashboard')} onAddStudent={() => setPage('studentAdd')} />;
+      return <StudentList onBack={() => setPage('dashboard')} onAddStudent={() => setPage('studentAdd')} onEditStudent={(student) => { setSelectedStudent(student); setPage('studentEdit'); }} />;
     }
     if (page === 'studentAdd') {
       return <StudentForm onBack={() => setPage('students')} />;
+    }
+    if (page === 'studentEdit') {
+      return <StudentForm student={selectedStudent} onBack={() => { setSelectedStudent(null); setPage('students'); }} />;
     }
     return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} />;
   }

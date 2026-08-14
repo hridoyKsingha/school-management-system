@@ -130,6 +130,8 @@ button:disabled { cursor: wait; opacity: .65; }
 .full-width { grid-column: 1 / -1; }
 .record-form button { margin-top: 0; }
 
+.table-button { margin: 0; padding: .45rem .7rem; font-size: .85rem; }
+
 table { width: 100%; border-collapse: collapse; min-width: 720px; }
 th, td { padding: 1rem; border-bottom: 1px solid #e7eef7; text-align: left; }
 th { color: #5c6d83; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; }
