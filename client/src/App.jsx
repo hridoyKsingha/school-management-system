@@ -168,7 +168,7 @@ function StudentList({ onBack, onAddStudent, onEditStudent }) {
   );
 }
 
-function TeacherList({ onBack }) {
+function TeacherList({ onBack, onAddTeacher }) {
   const [teachers, setTeachers] = useState([]);
   const [message, setMessage] = useState('Loading teachers...');
 
@@ -195,7 +195,10 @@ function TeacherList({ onBack }) {
     <main className="records-page">
       <header className="dashboard-header">
         <div><p className="eyebrow">School Management System</p><h1>Teacher records</h1></div>
-        <button type="button" className="logout-button" onClick={onBack}>Back to dashboard</button>
+        <div className="header-actions">
+          <button type="button" className="students-button" onClick={onAddTeacher}>Add teacher</button>
+          <button type="button" className="logout-button" onClick={onBack}>Back to dashboard</button>
+        </div>
       </header>
       {message && <p className="form-message" role="status">{message}</p>}
       {teachers.length > 0 && (
@@ -208,6 +211,47 @@ function TeacherList({ onBack }) {
           </table>
         </div>
       )}
+    </main>
+  );
+}
+
+function TeacherForm({ onBack }) {
+  const [form, setForm] = useState({ teacherId: '', name: '', subject: '', assignedClass: '', phone: '' });
+  const [message, setMessage] = useState('');
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    try {
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch('/api/teachers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(form),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Unable to add teacher.');
+      setMessage('Teacher added successfully.');
+      setForm({ teacherId: '', name: '', subject: '', assignedClass: '', phone: '' });
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
+  return (
+    <main className="records-page">
+      <header className="dashboard-header">
+        <div><p className="eyebrow">School Management System</p><h1>Add teacher</h1></div>
+        <button type="button" className="logout-button" onClick={onBack}>Back to teachers</button>
+      </header>
+      <form className="record-form" onSubmit={handleSubmit}>
+        <label>Teacher ID<input value={form.teacherId} onChange={(event) => setForm({ ...form, teacherId: event.target.value })} required /></label>
+        <label>Full name<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required /></label>
+        <label>Subject<input value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })} required /></label>
+        <label>Assigned class<input value={form.assignedClass} onChange={(event) => setForm({ ...form, assignedClass: event.target.value })} required /></label>
+        <label className="full-width">Phone<input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} required /></label>
+        <button type="submit" className="full-width">Add teacher</button>
+      </form>
+      {message && <p className="form-message" role="status">{message}</p>}
     </main>
   );
 }
@@ -335,7 +379,10 @@ export default function App() {
       return <StudentForm student={selectedStudent} onBack={() => { setSelectedStudent(null); setPage('students'); }} />;
     }
     if (page === 'teachers') {
-      return <TeacherList onBack={() => setPage('dashboard')} />;
+      return <TeacherList onBack={() => setPage('dashboard')} onAddTeacher={() => setPage('teacherAdd')} />;
+    }
+    if (page === 'teacherAdd') {
+      return <TeacherForm onBack={() => setPage('teachers')} />;
     }
     return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} />;
   }
