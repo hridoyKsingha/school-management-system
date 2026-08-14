@@ -5,7 +5,7 @@ function getStoredAdmin() {
   return storedAdmin ? JSON.parse(storedAdmin) : null;
 }
 
-function Dashboard({ admin, onLogout, onViewStudents }) {
+function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers }) {
   const [summary, setSummary] = useState(null);
   const [message, setMessage] = useState('Loading dashboard summary...');
 
@@ -47,6 +47,7 @@ function Dashboard({ admin, onLogout, onViewStudents }) {
         </div>
         <div className="header-actions">
           <button type="button" className="students-button" onClick={onViewStudents}>Students</button>
+          <button type="button" className="students-button" onClick={onViewTeachers}>Teachers</button>
           <button type="button" className="logout-button" onClick={onLogout}>Sign out</button>
         </div>
       </header>
@@ -161,6 +162,50 @@ function StudentList({ onBack, onAddStudent, onEditStudent }) {
             </tbody>
           </table>
           {filteredStudents.length === 0 && <p className="empty-search">No matching student found.</p>}
+        </div>
+      )}
+    </main>
+  );
+}
+
+function TeacherList({ onBack }) {
+  const [teachers, setTeachers] = useState([]);
+  const [message, setMessage] = useState('Loading teachers...');
+
+  useEffect(() => {
+    async function loadTeachers() {
+      try {
+        const token = sessionStorage.getItem('schoolAdminToken');
+        const response = await fetch('/api/teachers', { headers: { Authorization: `Bearer ${token}` } });
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.message || 'Unable to load teachers.');
+
+        setTeachers(data.teachers);
+        setMessage(data.teachers.length ? '' : 'No teacher records yet.');
+      } catch (error) {
+        setMessage(error.message);
+      }
+    }
+
+    loadTeachers();
+  }, []);
+
+  return (
+    <main className="records-page">
+      <header className="dashboard-header">
+        <div><p className="eyebrow">School Management System</p><h1>Teacher records</h1></div>
+        <button type="button" className="logout-button" onClick={onBack}>Back to dashboard</button>
+      </header>
+      {message && <p className="form-message" role="status">{message}</p>}
+      {teachers.length > 0 && (
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Subject</th><th>Assigned class</th><th>Phone</th></tr></thead>
+            <tbody>{teachers.map((teacher) => (
+              <tr key={teacher._id}><td>{teacher.teacherId}</td><td>{teacher.name}</td><td>{teacher.subject}</td><td>{teacher.assignedClass}</td><td>{teacher.phone}</td></tr>
+            ))}</tbody>
+          </table>
         </div>
       )}
     </main>
@@ -289,7 +334,10 @@ export default function App() {
     if (page === 'studentEdit') {
       return <StudentForm student={selectedStudent} onBack={() => { setSelectedStudent(null); setPage('students'); }} />;
     }
-    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} />;
+    if (page === 'teachers') {
+      return <TeacherList onBack={() => setPage('dashboard')} />;
+    }
+    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} />;
   }
 
   return (
