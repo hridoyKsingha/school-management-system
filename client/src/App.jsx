@@ -97,6 +97,29 @@ function StudentList({ onBack, onAddStudent, onEditStudent }) {
     loadStudents();
   }, []);
 
+  async function handleDelete(student) {
+    const confirmed = window.confirm(`Delete ${student.name}? This cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch(`/api/students/${student._id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to delete student.');
+      }
+
+      setStudents(students.filter((item) => item._id !== student._id));
+      setMessage('Student deleted successfully.');
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
   return (
     <main className="records-page">
       <header className="dashboard-header">
@@ -122,7 +145,10 @@ function StudentList({ onBack, onAddStudent, onEditStudent }) {
                 <tr key={student._id}>
                   <td>{student.studentId}</td><td>{student.name}</td><td>{student.className}</td>
                   <td>{student.section}</td><td>{student.rollNumber}</td><td>{student.guardianPhone}</td>
-                  <td><button type="button" className="table-button" onClick={() => onEditStudent(student)}>Edit</button></td>
+                  <td className="table-actions">
+                    <button type="button" className="table-button" onClick={() => onEditStudent(student)}>Edit</button>
+                    <button type="button" className="table-button danger-button" onClick={() => handleDelete(student)}>Delete</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
