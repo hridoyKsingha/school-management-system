@@ -131,6 +131,9 @@ button:disabled { cursor: wait; opacity: .65; }
 .record-form button { margin-top: 0; }
 
 .table-button { margin: 0; padding: .45rem .7rem; font-size: .85rem; }
+.table-actions { display: flex; gap: .5rem; }
+.danger-button { background: #c43b3b; }
+.danger-button:hover:not(:disabled) { background: #a52e2e; }
 
 table { width: 100%; border-collapse: collapse; min-width: 720px; }
 th, td { padding: 1rem; border-bottom: 1px solid #e7eef7; text-align: left; }
