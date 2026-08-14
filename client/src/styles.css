@@ -115,6 +115,9 @@ button:disabled { cursor: wait; opacity: .65; }
 
 .table-wrap { overflow-x: auto; border: 1px solid #dbe5f2; border-radius: 1rem; background: #fff; }
 
+.search-input { max-width: 420px; margin: 0 0 1rem; }
+.empty-search { padding: 1rem; color: #5c6d83; }
+
 .record-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
