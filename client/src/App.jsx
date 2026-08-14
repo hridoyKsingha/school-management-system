@@ -191,6 +191,25 @@ function TeacherList({ onBack, onAddTeacher, onEditTeacher }) {
     loadTeachers();
   }, []);
 
+  async function handleDelete(teacher) {
+    const confirmed = window.confirm(`Delete ${teacher.name}? This cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch(`/api/teachers/${teacher._id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Unable to delete teacher.');
+      setTeachers(teachers.filter((item) => item._id !== teacher._id));
+      setMessage('Teacher deleted successfully.');
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
   return (
     <main className="records-page">
       <header className="dashboard-header">
@@ -206,7 +225,7 @@ function TeacherList({ onBack, onAddTeacher, onEditTeacher }) {
           <table>
             <thead><tr><th>ID</th><th>Name</th><th>Subject</th><th>Assigned class</th><th>Phone</th><th>Action</th></tr></thead>
             <tbody>{teachers.map((teacher) => (
-              <tr key={teacher._id}><td>{teacher.teacherId}</td><td>{teacher.name}</td><td>{teacher.subject}</td><td>{teacher.assignedClass}</td><td>{teacher.phone}</td><td><button type="button" className="table-button" onClick={() => onEditTeacher(teacher)}>Edit</button></td></tr>
+              <tr key={teacher._id}><td>{teacher.teacherId}</td><td>{teacher.name}</td><td>{teacher.subject}</td><td>{teacher.assignedClass}</td><td>{teacher.phone}</td><td className="table-actions"><button type="button" className="table-button" onClick={() => onEditTeacher(teacher)}>Edit</button><button type="button" className="table-button danger-button" onClick={() => handleDelete(teacher)}>Delete</button></td></tr>
             ))}</tbody>
           </table>
         </div>
