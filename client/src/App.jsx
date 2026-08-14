@@ -70,7 +70,7 @@ function Dashboard({ admin, onLogout, onViewStudents }) {
   );
 }
 
-function StudentList({ onBack }) {
+function StudentList({ onBack, onAddStudent }) {
   const [students, setStudents] = useState([]);
   const [message, setMessage] = useState('Loading students...');
 
@@ -104,7 +104,10 @@ function StudentList({ onBack }) {
           <p className="eyebrow">School Management System</p>
           <h1>Student records</h1>
         </div>
-        <button type="button" className="logout-button" onClick={onBack}>Back to dashboard</button>
+        <div className="header-actions">
+          <button type="button" className="students-button" onClick={onAddStudent}>Add student</button>
+          <button type="button" className="logout-button" onClick={onBack}>Back to dashboard</button>
+        </div>
       </header>
 
       {message && <p className="form-message" role="status">{message}</p>}
@@ -125,6 +128,66 @@ function StudentList({ onBack }) {
           </table>
         </div>
       )}
+    </main>
+  );
+}
+
+function StudentForm({ onBack }) {
+  const [form, setForm] = useState({
+    studentId: '', name: '', className: '', section: '', rollNumber: '', dateOfBirth: '', guardianPhone: '', address: '',
+  });
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function updateField(event) {
+    setForm({ ...form, [event.target.name]: event.target.value });
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setMessage('');
+    setIsSubmitting(true);
+
+    try {
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch('/api/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(form),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to add student.');
+      }
+
+      setMessage('Student added successfully.');
+      setForm({ studentId: '', name: '', className: '', section: '', rollNumber: '', dateOfBirth: '', guardianPhone: '', address: '' });
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <main className="records-page">
+      <header className="dashboard-header">
+        <div><p className="eyebrow">School Management System</p><h1>Add student</h1></div>
+        <button type="button" className="logout-button" onClick={onBack}>Back to students</button>
+      </header>
+      <form className="record-form" onSubmit={handleSubmit}>
+        <label>Student ID<input name="studentId" value={form.studentId} onChange={updateField} required /></label>
+        <label>Full name<input name="name" value={form.name} onChange={updateField} required /></label>
+        <label>Class<input name="className" value={form.className} onChange={updateField} required /></label>
+        <label>Section<input name="section" value={form.section} onChange={updateField} required /></label>
+        <label>Roll number<input name="rollNumber" value={form.rollNumber} onChange={updateField} required /></label>
+        <label>Date of birth<input type="date" name="dateOfBirth" value={form.dateOfBirth} onChange={updateField} required /></label>
+        <label>Guardian phone<input name="guardianPhone" value={form.guardianPhone} onChange={updateField} required /></label>
+        <label className="full-width">Address<input name="address" value={form.address} onChange={updateField} required /></label>
+        <button type="submit" className="full-width" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Add student'}</button>
+      </form>
+      {message && <p className="form-message" role="status">{message}</p>}
     </main>
   );
 }
@@ -175,9 +238,13 @@ export default function App() {
   }
 
   if (admin) {
-    return page === 'students'
-      ? <StudentList onBack={() => setPage('dashboard')} />
-      : <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} />;
+    if (page === 'students') {
+      return <StudentList onBack={() => setPage('dashboard')} onAddStudent={() => setPage('studentAdd')} />;
+    }
+    if (page === 'studentAdd') {
+      return <StudentForm onBack={() => setPage('students')} />;
+    }
+    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} />;
   }
 
   return (
