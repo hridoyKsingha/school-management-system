@@ -73,6 +73,7 @@ function Dashboard({ admin, onLogout, onViewStudents }) {
 function StudentList({ onBack, onAddStudent, onEditStudent }) {
   const [students, setStudents] = useState([]);
   const [message, setMessage] = useState('Loading students...');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     async function loadStudents() {
@@ -120,6 +121,11 @@ function StudentList({ onBack, onAddStudent, onEditStudent }) {
     }
   }
 
+  const filteredStudents = students.filter((student) => {
+    const query = searchTerm.trim().toLowerCase();
+    return !query || student.name.toLowerCase().includes(query) || student.studentId.toLowerCase().includes(query);
+  });
+
   return (
     <main className="records-page">
       <header className="dashboard-header">
@@ -134,6 +140,7 @@ function StudentList({ onBack, onAddStudent, onEditStudent }) {
       </header>
 
       {message && <p className="form-message" role="status">{message}</p>}
+      <input className="search-input" type="search" placeholder="Search by student name or ID" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} />
       {students.length > 0 && (
         <div className="table-wrap">
           <table>
@@ -141,7 +148,7 @@ function StudentList({ onBack, onAddStudent, onEditStudent }) {
               <tr><th>ID</th><th>Name</th><th>Class</th><th>Section</th><th>Roll</th><th>Guardian phone</th><th>Action</th></tr>
             </thead>
             <tbody>
-              {students.map((student) => (
+              {filteredStudents.map((student) => (
                 <tr key={student._id}>
                   <td>{student.studentId}</td><td>{student.name}</td><td>{student.className}</td>
                   <td>{student.section}</td><td>{student.rollNumber}</td><td>{student.guardianPhone}</td>
@@ -153,6 +160,7 @@ function StudentList({ onBack, onAddStudent, onEditStudent }) {
               ))}
             </tbody>
           </table>
+          {filteredStudents.length === 0 && <p className="empty-search">No matching student found.</p>}
         </div>
       )}
     </main>
