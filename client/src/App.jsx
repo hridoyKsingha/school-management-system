@@ -9,26 +9,27 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers }) {
   const [summary, setSummary] = useState(null);
   const [message, setMessage] = useState('Loading dashboard summary...');
 
-  useEffect(() => {
-    async function loadSummary() {
-      try {
-        const token = sessionStorage.getItem('schoolAdminToken');
-        const response = await fetch('/api/dashboard/summary', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
+  async function loadSummary() {
+    try {
+      setMessage('Loading dashboard summary...');
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch('/api/dashboard/summary', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.message || 'Unable to load dashboard summary.');
-        }
-
-        setSummary(data);
-        setMessage('');
-      } catch (error) {
-        setMessage(error.message);
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to load dashboard summary.');
       }
-    }
 
+      setSummary(data);
+      setMessage('');
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
+  useEffect(() => {
     loadSummary();
   }, []);
 
@@ -53,7 +54,7 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers }) {
       </header>
 
       <section className="dashboard-overview" aria-labelledby="overview-title">
-        <p className="card-kicker">Dashboard overview</p>
+        <div className="overview-heading"><p className="card-kicker">Dashboard overview</p><button type="button" className="refresh-button" onClick={loadSummary}>Refresh</button></div>
         <h2 id="overview-title">Your school at a glance</h2>
         {message && <p className="form-message" role="status">{message}</p>}
         {cards && (
