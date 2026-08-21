@@ -4,6 +4,15 @@ import SchoolClass from '../models/SchoolClass.js';
 
 const classRouter = Router();
 
+classRouter.get('/', requireAdmin, async (_request, response) => {
+  try {
+    const classes = await SchoolClass.find().sort({ className: 1, section: 1 });
+    return response.json({ classes });
+  } catch {
+    return response.status(500).json({ message: 'Unable to load classes.' });
+  }
+});
+
 classRouter.post('/', requireAdmin, async (request, response) => {
   const { className, section } = request.body;
 
