@@ -144,6 +144,10 @@ th { color: #5c6d83; font-size: .78rem; letter-spacing: .05em; text-transform: u
 tr:last-child td { border-bottom: 0; }
 
 .dashboard-overview { max-width: 900px; }
+.overview-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.overview-heading .card-kicker { margin: 0; }
+.refresh-button { margin: 0; padding: .5rem .8rem; background: #e8eff8; color: #1b4c85; }
+.refresh-button:hover:not(:disabled) { background: #d7e5f5; }
 
 .dashboard-overview h2 { font-size: 1.8rem; }
 
