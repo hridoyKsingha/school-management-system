@@ -171,6 +171,7 @@ function StudentList({ onBack, onAddStudent, onEditStudent }) {
 function TeacherList({ onBack, onAddTeacher, onEditTeacher }) {
   const [teachers, setTeachers] = useState([]);
   const [message, setMessage] = useState('Loading teachers...');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     async function loadTeachers() {
@@ -210,6 +211,11 @@ function TeacherList({ onBack, onAddTeacher, onEditTeacher }) {
     }
   }
 
+  const filteredTeachers = teachers.filter((teacher) => {
+    const query = searchTerm.trim().toLowerCase();
+    return !query || teacher.name.toLowerCase().includes(query) || teacher.teacherId.toLowerCase().includes(query);
+  });
+
   return (
     <main className="records-page">
       <header className="dashboard-header">
@@ -220,14 +226,16 @@ function TeacherList({ onBack, onAddTeacher, onEditTeacher }) {
         </div>
       </header>
       {message && <p className="form-message" role="status">{message}</p>}
+      <input className="search-input" type="search" placeholder="Search by teacher name or ID" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} />
       {teachers.length > 0 && (
         <div className="table-wrap">
           <table>
             <thead><tr><th>ID</th><th>Name</th><th>Subject</th><th>Assigned class</th><th>Phone</th><th>Action</th></tr></thead>
-            <tbody>{teachers.map((teacher) => (
+            <tbody>{filteredTeachers.map((teacher) => (
               <tr key={teacher._id}><td>{teacher.teacherId}</td><td>{teacher.name}</td><td>{teacher.subject}</td><td>{teacher.assignedClass}</td><td>{teacher.phone}</td><td className="table-actions"><button type="button" className="table-button" onClick={() => onEditTeacher(teacher)}>Edit</button><button type="button" className="table-button danger-button" onClick={() => handleDelete(teacher)}>Delete</button></td></tr>
             ))}</tbody>
           </table>
+          {filteredTeachers.length === 0 && <p className="empty-search">No matching teacher found.</p>}
         </div>
       )}
     </main>
