@@ -2,6 +2,7 @@
   "name": "school-management-system",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "MERN student and teacher record management platform",
   "scripts": {
     "dev": "pnpm --parallel --filter client --filter server dev",
