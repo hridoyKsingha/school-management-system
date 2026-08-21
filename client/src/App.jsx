@@ -91,7 +91,7 @@ function StudentList({ onBack, onAddStudent, onEditStudent }) {
         }
 
         setStudents(data.students);
-        setMessage(data.students.length ? '' : 'No student records yet.');
+        setMessage('');
       } catch (error) {
         setMessage(error.message);
       }
@@ -165,6 +165,9 @@ function StudentList({ onBack, onAddStudent, onEditStudent }) {
           {filteredStudents.length === 0 && <p className="empty-search">No matching student found.</p>}
         </div>
       )}
+      {!message && students.length === 0 && (
+        <section className="empty-state"><h2>No student records yet</h2><p>Add the first student to begin managing school records.</p><button type="button" onClick={onAddStudent}>Add student</button></section>
+      )}
     </main>
   );
 }
@@ -184,7 +187,7 @@ function TeacherList({ onBack, onAddTeacher, onEditTeacher }) {
         if (!response.ok) throw new Error(data.message || 'Unable to load teachers.');
 
         setTeachers(data.teachers);
-        setMessage(data.teachers.length ? '' : 'No teacher records yet.');
+        setMessage('');
       } catch (error) {
         setMessage(error.message);
       }
@@ -238,6 +241,9 @@ function TeacherList({ onBack, onAddTeacher, onEditTeacher }) {
           </table>
           {filteredTeachers.length === 0 && <p className="empty-search">No matching teacher found.</p>}
         </div>
+      )}
+      {!message && teachers.length === 0 && (
+        <section className="empty-state"><h2>No teacher records yet</h2><p>Add the first teacher to begin managing school records.</p><button type="button" onClick={onAddTeacher}>Add teacher</button></section>
       )}
     </main>
   );
