@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/project-preview.png" alt="School Management System login screen" width="900" />
+  <img src="assets/screenshots/login.png" alt="School Management System login screen" width="900" />
 </p>
 
 ## Overview
@@ -31,6 +31,29 @@
 School Management System is a full-stack web application built for school administrators. It provides authenticated access to a dashboard and makes student and teacher record management simple, organized, and secure.
 
 **Live site:** [school-management-system-client-livid.vercel.app](https://school-management-system-client-livid.vercel.app)
+
+## Application Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/dashboard.png" alt="Administrator dashboard" width="48%" />
+  <img src="assets/screenshots/student-list.png" alt="Student records page" width="48%" />
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/student-form.png" alt="Add student form" width="48%" />
+  <img src="assets/screenshots/teacher-list.png" alt="Teacher records page" width="48%" />
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/teacher-form.png" alt="Add teacher form" width="48%" />
+</p>
+
+| Screen | Description |
+| --- | --- |
+| Administrator login | Secure access to the management platform |
+| Dashboard | Live student, teacher, and class summary |
+| Student records | Search, add, edit, and delete student information |
+| Teacher records | Search, add, edit, and delete teacher information |
 
 ## Features
 
@@ -97,7 +120,7 @@ school-management-system/
 ├── client/        # React + Vite frontend
 ├── server/        # Express API, routes, models, middleware
 ├── api/           # Vercel serverless route handlers
-└── assets/        # README project preview image
+└── assets/        # README preview and application screenshots
 ```
 
 ## Run Locally
