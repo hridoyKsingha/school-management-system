@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
+import { requireAdmin } from '../middleware/requireAdmin.js';
 import Admin from '../models/Admin.js';
 
 const authRouter = Router();
@@ -70,6 +71,34 @@ authRouter.post('/login', async (request, response) => {
     });
   } catch {
     return response.status(500).json({ message: 'Unable to sign in.' });
+  }
+});
+
+authRouter.put('/change-password', requireAdmin, async (request, response) => {
+  const { currentPassword, newPassword } = request.body;
+
+  if (!currentPassword || !newPassword) {
+    return response.status(400).json({ message: 'Current and new passwords are required.' });
+  }
+
+  if (newPassword.length < 8) {
+    return response.status(400).json({ message: 'New password must contain at least 8 characters.' });
+  }
+
+  try {
+    const admin = await Admin.findById(request.admin.id).select('+password');
+    const passwordMatches = admin && await bcrypt.compare(currentPassword, admin.password);
+
+    if (!passwordMatches) {
+      return response.status(401).json({ message: 'Current password is incorrect.' });
+    }
+
+    admin.password = await bcrypt.hash(newPassword, 12);
+    await admin.save();
+
+    return response.json({ message: 'Password changed successfully.' });
+  } catch {
+    return response.status(500).json({ message: 'Unable to change password.' });
   }
 });
 
