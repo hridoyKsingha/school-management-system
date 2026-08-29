@@ -102,4 +102,40 @@ authRouter.put('/change-password', requireAdmin, async (request, response) => {
   }
 });
 
+authRouter.put('/change-email', requireAdmin, async (request, response) => {
+  const { currentPassword, newEmail } = request.body;
+
+  if (!currentPassword || !newEmail?.trim()) {
+    return response.status(400).json({ message: 'Current password and new email are required.' });
+  }
+
+  const email = newEmail.trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    return response.status(400).json({ message: 'Enter a valid email address.' });
+  }
+
+  try {
+    const admin = await Admin.findById(request.admin.id).select('+password');
+    const passwordMatches = admin && await bcrypt.compare(currentPassword, admin.password);
+
+    if (!passwordMatches) {
+      return response.status(401).json({ message: 'Current password is incorrect.' });
+    }
+
+    admin.email = email;
+    await admin.save();
+
+    return response.json({
+      message: 'Email changed successfully.',
+      admin: { id: admin.id, name: admin.name, email: admin.email },
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return response.status(409).json({ message: 'This email address is already in use.' });
+    }
+
+    return response.status(500).json({ message: 'Unable to change email.' });
+  }
+});
+
 export default authRouter;
