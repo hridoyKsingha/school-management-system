@@ -16,3 +16,12 @@ dist/
 *.log
 .DS_Store
 .vscode/
+
+# Local presentation and temporary work files
+tmp/
+School-Management-System-Presentation/
+School-Management-System-Presentation.pptx
+School-Management-System-Presentation.pptx.inspect.ndjson
+School-Management-System-Speech.md
+Five-Minute-Demo-Speech.md
+assets/presentation/

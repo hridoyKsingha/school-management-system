@@ -61,6 +61,11 @@ School Management System is a full-stack web application built for school admini
 - Protected administrator dashboard with live summary totals
 - Student management: create, view, update, delete, and search records
 - Teacher management: create, view, update, delete, and search records
+- Class and section management with teacher and room details
+- Daily attendance marking by date and class
+- Subject-wise results with automatic percentage and grade calculation
+- Dashboard enrollment chart and attendance insights
+- Persistent dark-mode preference and administrator account settings
 - Clear empty states, confirmation before deleting, and manual dashboard refresh
 - Persistent cloud database with MongoDB Atlas
 - Production deployment on Vercel
@@ -172,6 +177,9 @@ Open [http://localhost:5173](http://localhost:5173).
 | GET | `/api/dashboard/summary` | Get dashboard totals |
 | GET/POST/PUT/DELETE | `/api/students` | Manage student records |
 | GET/POST/PUT/DELETE | `/api/teachers` | Manage teacher records |
+| GET/POST/PUT/DELETE | `/api/classes` | Manage class and section records |
+| GET, POST | `/api/attendance` | View and save daily attendance |
+| GET/POST/PUT/DELETE | `/api/results` | Manage subject results and grades |
 
 All record-management routes require a valid administrator JWT token.
 
@@ -182,6 +190,9 @@ All record-management routes require a valid administrator JWT token.
 | Administrator | Name, email, password hash |
 | Student | Student ID, name, class, section, roll, date of birth, guardian phone, address |
 | Teacher | Teacher ID, name, subject, assigned class, phone |
+| SchoolClass | Class name, section, class teacher, room number |
+| Attendance | Student, date, present/absent status, note |
+| Result | Student, subject, exam, marks, percentage, grade |
 
 Passwords are stored as bcrypt hashes; plain-text passwords are not saved in the database.
 
@@ -217,6 +228,10 @@ Cloudinary is **not enabled in the current version**. It is planned for a future
 - [x] Dashboard statistics and refresh
 - [x] Student CRUD and search
 - [x] Teacher CRUD and search
+- [x] Class and section CRUD
+- [x] Daily attendance marking
+- [x] Result, percentage, and grade management
+- [x] Dashboard analytics and dark mode
 - [x] MongoDB Atlas persistence
 - [x] Vercel deployment and `/api/health` check
 
@@ -232,13 +247,10 @@ This keeps the commit history easy to understand and provides a clear record of 
 
 ## Project Status
 
-The core proposal scope is complete and deployed. Planned future enhancements include:
+The core proposal scope and selected advanced modules are complete. Planned future enhancements include:
 
-- Class and section management with dedicated CRUD screens
 - Subject management and teacher-to-subject assignment
 - Student and teacher profile photo upload with Cloudinary
-- Attendance tracking by date, class, and section
-- Marks, grade calculation, and result publishing
 - Role-based accounts for administrator, teacher, and student
 - Individual teacher and student dashboards
 - Printable reports and PDF export
