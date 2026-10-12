@@ -33,7 +33,7 @@ authRouter.post('/register', async (request, response) => {
 
     return response.status(201).json({
       message: 'Administrator account created.',
-      admin: { id: admin.id, name: admin.name, email: admin.email },
+      admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role },
     });
   } catch (error) {
     if (error.code === 11000) {
@@ -63,11 +63,11 @@ authRouter.post('/login', async (request, response) => {
       return response.status(401).json({ message: 'Invalid email or password.' });
     }
 
-    const token = jwt.sign({ adminId: admin.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ adminId: admin.id, role: admin.role || 'admin' }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     return response.json({
       token,
-      admin: { id: admin.id, name: admin.name, email: admin.email },
+      admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role || 'admin' },
     });
   } catch {
     return response.status(500).json({ message: 'Unable to sign in.' });
@@ -127,7 +127,7 @@ authRouter.put('/change-email', requireAdmin, async (request, response) => {
 
     return response.json({
       message: 'Email changed successfully.',
-      admin: { id: admin.id, name: admin.name, email: admin.email },
+      admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role || 'admin' },
     });
   } catch (error) {
     if (error.code === 11000) {

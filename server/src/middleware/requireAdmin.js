@@ -21,9 +21,22 @@ export async function requireAdmin(request, response, next) {
       return response.status(401).json({ message: 'Administrator account was not found.' });
     }
 
+    if ((admin.role || 'admin') !== 'admin') {
+      return response.status(403).json({ message: 'Administrator access is required.' });
+    }
+
     request.admin = admin;
     return next();
   } catch {
     return response.status(401).json({ message: 'Invalid or expired authentication token.' });
   }
+}
+
+export function requireRole(...roles) {
+  return (request, response, next) => {
+    if (!roles.includes(request.admin?.role || 'admin')) {
+      return response.status(403).json({ message: 'You do not have permission to perform this action.' });
+    }
+    return next();
+  };
 }

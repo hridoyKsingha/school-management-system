@@ -27,7 +27,7 @@ app.get('/api/health', (_request, response) => {
 });
 
 app.get('/api/admin/profile', requireAdmin, (request, response) => {
-  response.json({ admin: request.admin });
+  response.json({ admin: { ...request.admin.toObject(), role: request.admin.role || 'admin' } });
 });
 
 app.use((_request, response) => {
