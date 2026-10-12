@@ -5,6 +5,7 @@ import authRouter from './routes/authRoutes.js';
 import attendanceRouter from './routes/attendanceRoutes.js';
 import classRouter from './routes/classRoutes.js';
 import dashboardRouter from './routes/dashboardRoutes.js';
+import resultRouter from './routes/resultRoutes.js';
 import studentRouter from './routes/studentRoutes.js';
 import teacherRouter from './routes/teacherRoutes.js';
 
@@ -17,6 +18,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/attendance', attendanceRouter);
 app.use('/api/classes', classRouter);
 app.use('/api/dashboard', dashboardRouter);
+app.use('/api/results', resultRouter);
 app.use('/api/students', studentRouter);
 app.use('/api/teachers', teacherRouter);
 
