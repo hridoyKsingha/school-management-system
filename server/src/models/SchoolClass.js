@@ -4,6 +4,8 @@ const schoolClassSchema = new mongoose.Schema(
   {
     className: { type: String, required: true, trim: true },
     section: { type: String, required: true, trim: true, uppercase: true },
+    classTeacher: { type: String, trim: true, default: '' },
+    roomNumber: { type: String, trim: true, default: '' },
   },
   { timestamps: true },
 );
