@@ -588,11 +588,6 @@ function StudentForm({ onBack, student }) {
   });
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [resetMode, setResetMode] = useState(false);
-  const [resetStep, setResetStep] = useState('request');
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetCode, setResetCode] = useState('');
-  const [resetPassword, setResetPassword] = useState('');
 
   function updateField(event) {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -655,6 +650,11 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
+  const [resetStep, setResetStep] = useState('request');
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [resetPassword, setResetPassword] = useState('');
   const [admin, setAdmin] = useState(getStoredAdmin);
   const [page, setPage] = useState('dashboard');
   const [selectedStudent, setSelectedStudent] = useState(null);
