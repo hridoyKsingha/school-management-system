@@ -5,7 +5,7 @@ function getStoredAdmin() {
   return storedAdmin ? JSON.parse(storedAdmin) : null;
 }
 
-function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClasses, onViewSettings }) {
+function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClasses, onViewAttendance, onViewSettings }) {
   const [summary, setSummary] = useState(null);
   const [message, setMessage] = useState('Loading dashboard summary...');
 
@@ -50,6 +50,7 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClas
           <button type="button" className="students-button" onClick={onViewStudents}>Students</button>
           <button type="button" className="students-button" onClick={onViewTeachers}>Teachers</button>
           <button type="button" className="students-button" onClick={onViewClasses}>Classes</button>
+          <button type="button" className="students-button" onClick={onViewAttendance}>Attendance</button>
           <button type="button" className="logout-button" onClick={onViewSettings}>Settings</button>
           <button type="button" className="logout-button" onClick={onLogout}>Sign out</button>
         </div>
@@ -72,6 +73,51 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClas
       </section>
     </main>
   );
+}
+
+function AttendancePage({ onBack }) {
+  const [students, setStudents] = useState([]);
+  const [records, setRecords] = useState({});
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [message, setMessage] = useState('Loading students...');
+  const [classFilter, setClassFilter] = useState('');
+
+  useEffect(() => {
+    async function loadStudentsAndAttendance() {
+      try {
+        setMessage('Loading attendance...');
+        const token = sessionStorage.getItem('schoolAdminToken');
+        const [studentResponse, attendanceResponse] = await Promise.all([
+          fetch('/api/students', { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`/api/attendance?date=${date}`, { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+        const studentData = await studentResponse.json();
+        const attendanceData = await attendanceResponse.json();
+        if (!studentResponse.ok) throw new Error(studentData.message || 'Unable to load students.');
+        if (!attendanceResponse.ok) throw new Error(attendanceData.message || 'Unable to load attendance.');
+        setStudents(studentData.students);
+        setRecords(Object.fromEntries(attendanceData.attendance.map((item) => [item.student?._id, item.status])));
+        setMessage('');
+      } catch (error) { setMessage(error.message); }
+    }
+    loadStudentsAndAttendance();
+  }, [date]);
+
+  const classOptions = [...new Set(students.map((student) => `${student.className} - ${student.section}`))].sort();
+  const visibleStudents = students.filter((student) => !classFilter || `${student.className} - ${student.section}` === classFilter);
+
+  async function saveAttendance() {
+    if (visibleStudents.length === 0) return;
+    try {
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch('/api/attendance/mark', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ date, records: visibleStudents.map((student) => ({ student: student._id, status: records[student._id] || 'Present' })) }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Unable to save attendance.');
+      setMessage(data.message);
+    } catch (error) { setMessage(error.message); }
+  }
+
+  return <main className="records-page"><header className="dashboard-header"><div><p className="eyebrow">School Management System</p><h1>Daily attendance</h1></div><button type="button" className="logout-button" onClick={onBack}>Back to dashboard</button></header><section className="attendance-controls"><label>Date<input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label><label>Class filter<select value={classFilter} onChange={(event) => setClassFilter(event.target.value)}><option value="">All classes</option>{classOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label><button type="button" onClick={saveAttendance} disabled={visibleStudents.length === 0}>Save attendance</button></section>{message && <p className="form-message" role="status">{message}</p>}{!message && <div className="table-wrap"><table><thead><tr><th>Student</th><th>ID</th><th>Class</th><th>Roll</th><th>Attendance status</th></tr></thead><tbody>{visibleStudents.map((student) => <tr key={student._id}><td>{student.name}</td><td>{student.studentId}</td><td>{student.className} - {student.section}</td><td>{student.rollNumber}</td><td><select className="status-select" value={records[student._id] || 'Present'} onChange={(event) => setRecords({ ...records, [student._id]: event.target.value })}><option>Present</option><option>Absent</option></select></td></tr>)}</tbody></table>{visibleStudents.length === 0 && <p className="empty-search">No students found for this selection.</p>}</div>}</main>;
 }
 
 function ClassList({ onBack, onAddClass, onEditClass }) {
@@ -542,13 +588,16 @@ export default function App() {
     if (page === 'settings') {
       return <AccountSettings admin={admin} onBack={() => setPage('dashboard')} onAdminUpdated={(updatedAdmin) => { sessionStorage.setItem('schoolAdmin', JSON.stringify(updatedAdmin)); setAdmin(updatedAdmin); }} />;
     }
+    if (page === 'attendance') {
+      return <AttendancePage onBack={() => setPage('dashboard')} />;
+    }
     if (page === 'teacherAdd') {
       return <TeacherForm onBack={() => setPage('teachers')} />;
     }
     if (page === 'teacherEdit') {
       return <TeacherForm teacher={selectedTeacher} onBack={() => { setSelectedTeacher(null); setPage('teachers'); }} />;
     }
-    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} onViewClasses={() => setPage('classes')} onViewSettings={() => setPage('settings')} />;
+    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} onViewClasses={() => setPage('classes')} onViewAttendance={() => setPage('attendance')} onViewSettings={() => setPage('settings')} />;
   }
 
   return (

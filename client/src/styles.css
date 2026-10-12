@@ -9,6 +9,7 @@
 body { margin: 0; }
 
 button, input { font: inherit; }
+select { font: inherit; }
 
 .login-page {
   min-height: 100vh;
@@ -146,6 +147,10 @@ button:disabled { cursor: wait; opacity: .65; }
 .full-width { grid-column: 1 / -1; }
 .record-form button { margin-top: 0; }
 .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; max-width: 1100px; }
+.attendance-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; margin-bottom: 1rem; }
+.attendance-controls label { display: grid; gap: .45rem; margin: 0; }
+.attendance-controls select, .status-select { padding: .72rem .8rem; border: 1px solid #bdcce0; border-radius: .55rem; background: #fff; color: #10233f; }
+.attendance-controls button { margin: 0; }
 
 .table-button { margin: 0; padding: .45rem .7rem; font-size: .85rem; }
 .table-actions { display: flex; gap: .5rem; }
@@ -191,6 +196,7 @@ tr:last-child td { border-bottom: 0; }
   .records-page { padding: 2rem 1.25rem; }
   .record-form { grid-template-columns: 1fr; }
   .settings-grid { grid-template-columns: 1fr; }
+  .attendance-controls { align-items: stretch; flex-direction: column; }
   .full-width { grid-column: auto; }
   .summary-grid { grid-template-columns: 1fr; }
 }
