@@ -687,6 +687,9 @@ export default function App() {
 
   return (
     <main className="login-page">
+      <button type="button" className="login-theme-toggle" onClick={() => setDarkMode((value) => !value)} aria-label="Toggle color theme">
+        {darkMode ? '☀ Light mode' : '◐ Dark mode'}
+      </button>
       <section className="login-intro" aria-label="School Management System introduction">
         <p className="eyebrow">School Management System</p>
         <h1>Manage school records with confidence.</h1>

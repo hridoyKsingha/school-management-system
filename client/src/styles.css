@@ -22,6 +22,7 @@ button, input { font: inherit; }
 select { font: inherit; }
 
 .login-page {
+  position: relative;
   min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 470px);
@@ -30,6 +31,9 @@ select { font: inherit; }
   padding: 3rem max(2rem, calc((100vw - 1120px) / 2));
   background: radial-gradient(circle at 12% 10%, #d7eaff 0, transparent 31%), #f7faff;
 }
+
+.login-theme-toggle { position: absolute; top: 1.5rem; right: max(2rem, calc((100vw - 1120px) / 2)); margin: 0; padding: .6rem .85rem; background: #e8eff8; color: #1b4c85; }
+.dark-theme .login-theme-toggle { background: #203c5c; color: #dcecff; }
 
 .login-intro { max-width: 570px; }
 
@@ -221,6 +225,7 @@ tr:last-child td { border-bottom: 0; }
 
 @media (max-width: 760px) {
   .login-page { grid-template-columns: 1fr; gap: 2.5rem; padding: 2rem 1.25rem; }
+  .login-theme-toggle { top: 1rem; right: 1.25rem; }
   .login-card { padding: 1.6rem; }
   .dashboard-page { padding: 2rem 1.25rem; }
   .dashboard-header { align-items: flex-start; flex-direction: column; margin-bottom: 2.5rem; }
