@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import Student from '../models/Student.js';
+import { createNotification } from '../utils/notifications.js';
 
 const studentRouter = Router();
 
@@ -42,6 +43,7 @@ studentRouter.post('/', requireAdmin, async (request, response) => {
       address,
       photoUrl: photoUrl || '',
     });
+    await createNotification('Student added', `${student.name} was added to the student records.`, 'success');
 
     return response.status(201).json({ message: 'Student created.', student });
   } catch (error) {

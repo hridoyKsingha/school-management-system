@@ -213,6 +213,11 @@ tr:last-child td { border-bottom: 0; }
 .bar-track i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #145bb2, #4a8de1); }
 .attendance-summary { display: flex; gap: 1rem; margin-top: 1rem; }
 .attendance-summary p { margin: 0; padding: .75rem 1rem; border-radius: .7rem; background: #eaf3ff; color: #1b4c85; }
+.notification-panel { margin-top: 2rem; max-width: 700px; padding: 1.5rem; border: 1px solid #dbe5f2; border-radius: 1rem; background: #fff; }
+.notification-panel h2 { margin: .25rem 0 0; font-size: 1.35rem; }
+.notification-item { margin-top: .8rem; padding: .85rem 1rem; border-left: 4px solid #2165ba; border-radius: .45rem; background: #eef5ff; }
+.notification-item.is-read { border-left-color: #b5c4d8; background: #f6f8fb; }
+.notification-item p { margin: .2rem 0 0; color: #52667f; }
 
 @media (max-width: 760px) {
   .login-page { grid-template-columns: 1fr; gap: 2.5rem; padding: 2rem 1.25rem; }

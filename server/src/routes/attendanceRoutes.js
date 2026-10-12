@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import Attendance from '../models/Attendance.js';
 import Student from '../models/Student.js';
+import { createNotification } from '../utils/notifications.js';
 
 const attendanceRouter = Router();
 
@@ -45,6 +46,7 @@ attendanceRouter.post('/mark', requireAdmin, async (request, response) => {
       },
     }));
     await Attendance.bulkWrite(operations);
+    await createNotification('Attendance saved', `Attendance for ${date} was updated.`, 'success');
     return response.json({ message: 'Attendance saved successfully.', totalRecords: records.length });
   } catch {
     return response.status(500).json({ message: 'Unable to save attendance.' });

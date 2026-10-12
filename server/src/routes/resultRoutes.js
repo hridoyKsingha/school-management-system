@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import Result from '../models/Result.js';
 import Student from '../models/Student.js';
+import { createNotification } from '../utils/notifications.js';
 
 const resultRouter = Router();
 
@@ -40,6 +41,7 @@ resultRouter.post('/', requireAdmin, async (request, response) => {
   const { percentage, grade } = calculateGrade(Number(obtainedMarks), Number(fullMarks));
   try {
     const result = await Result.create({ student, subject, examType, fullMarks, obtainedMarks, percentage, grade });
+    await createNotification('Result published', `${subject} ${examType} result was recorded.`, 'success');
     await result.populate('student', 'studentId name className section rollNumber');
     return response.status(201).json({ message: 'Result created.', result });
   } catch (error) {

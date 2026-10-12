@@ -28,6 +28,7 @@ function ProfilePhotoField({ value, onChange }) {
 function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClasses, onViewAttendance, onViewResults, onViewSettings, darkMode, onToggleTheme }) {
   const [summary, setSummary] = useState(null);
   const [message, setMessage] = useState('Loading dashboard summary...');
+  const [notifications, setNotifications] = useState([]);
 
   async function loadSummary() {
     try {
@@ -51,6 +52,11 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClas
 
   useEffect(() => {
     loadSummary();
+    const token = sessionStorage.getItem('schoolAdminToken');
+    fetch('/api/notifications', { headers: { Authorization: `Bearer ${token}` } })
+      .then((response) => response.json())
+      .then((data) => setNotifications(data.notifications || []))
+      .catch(() => setNotifications([]));
   }, []);
 
   const cards = summary && [
@@ -94,6 +100,7 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClas
           </div>
         )}
         {summary?.classDistribution?.length > 0 && <section className="analytics-section" aria-labelledby="distribution-title"><div><p className="card-kicker">Enrollment insights</p><h2 id="distribution-title">Students by class and section</h2></div><div className="bar-chart">{summary.classDistribution.map((item) => <div className="bar-row" key={item.label}><span>{item.label}</span><div className="bar-track"><i style={{ width: `${Math.max(8, (item.total / Math.max(...summary.classDistribution.map((value) => value.total))) * 100)}%` }} /></div><strong>{item.total}</strong></div>)}</div></section>}
+        {notifications.length > 0 && <section className="notification-panel"><div className="overview-heading"><div><p className="card-kicker">Activity</p><h2>Recent notifications</h2></div><button type="button" className="refresh-button" onClick={async () => { const token = sessionStorage.getItem('schoolAdminToken'); await fetch('/api/notifications/read-all', { method: 'PUT', headers: { Authorization: `Bearer ${token}` } }); setNotifications(notifications.map((item) => ({ ...item, isRead: true }))); }}>Mark all read</button></div>{notifications.map((item) => <article className={`notification-item ${item.isRead ? 'is-read' : ''}`} key={item._id}><strong>{item.title}</strong><p>{item.message}</p></article>)}</section>}
         {(summary?.attendanceSummary?.Present || summary?.attendanceSummary?.Absent) && <section className="attendance-summary"><p><strong>{summary.attendanceSummary.Present || 0}</strong> attendance records marked present</p><p><strong>{summary.attendanceSummary.Absent || 0}</strong> attendance records marked absent</p></section>}
       </section>
     </main>
