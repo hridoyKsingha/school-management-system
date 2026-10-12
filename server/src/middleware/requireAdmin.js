@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import Admin from '../models/Admin.js';
 
-export async function requireAdmin(request, response, next) {
+export async function requireAuthenticated(request, response, next) {
   const authorization = request.headers.authorization;
   const token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : null;
 
@@ -21,15 +21,18 @@ export async function requireAdmin(request, response, next) {
       return response.status(401).json({ message: 'Administrator account was not found.' });
     }
 
-    if ((admin.role || 'admin') !== 'admin') {
-      return response.status(403).json({ message: 'Administrator access is required.' });
-    }
-
     request.admin = admin;
     return next();
   } catch {
     return response.status(401).json({ message: 'Invalid or expired authentication token.' });
   }
+}
+
+export async function requireAdmin(request, response, next) {
+  return requireAuthenticated(request, response, () => {
+    if ((request.admin.role || 'admin') !== 'admin') return response.status(403).json({ message: 'Administrator access is required.' });
+    return next();
+  });
 }
 
 export function requireRole(...roles) {

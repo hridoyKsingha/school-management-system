@@ -26,7 +26,57 @@ function ProfilePhotoField({ value, onChange }) {
   return <label className="full-width">Profile photo <input type="file" accept="image/*" onChange={uploadImage} />{value && <img className="profile-preview" src={value} alt="Profile preview" />}{status && <small className="upload-status">{status}</small>}</label>;
 }
 
-function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClasses, onViewAttendance, onViewResults, onViewSettings, darkMode, onToggleTheme }) {
+function BangladeshClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => { const timer = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(timer); }, []);
+  return <p className="bd-clock">🇧🇩 Dhaka, Bangladesh · {new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Dhaka', dateStyle: 'full', timeStyle: 'medium' }).format(now)}</p>;
+}
+
+function PublicNotices() {
+  const [notices, setNotices] = useState([]);
+  useEffect(() => { fetch('/api/notices/public').then((response) => response.json()).then((data) => setNotices(data.notices || [])).catch(() => setNotices([])); }, []);
+  if (!notices.length) return <section className="login-notice"><p className="card-kicker">Welcome</p><strong>One place for every school record.</strong><span>Sign in to manage students, teachers, attendance, results, and academic operations securely.</span></section>;
+  return <section className="login-notice"><p className="card-kicker">Notice board</p>{notices.slice(0, 2).map((notice) => <article key={notice._id}><strong>{notice.title}</strong><span>{notice.body}</span></article>)}</section>;
+}
+
+function RolePortal({ admin, onLogout, darkMode, onToggleTheme }) {
+  const [notices, setNotices] = useState([]);
+  useEffect(() => { const token = sessionStorage.getItem('schoolAdminToken'); fetch('/api/portal/overview', { headers: { Authorization: `Bearer ${token}` } }).then((response) => response.json()).then((data) => setNotices(data.notices || [])).catch(() => setNotices([])); }, []);
+  const label = admin.role === 'teacher' ? 'Teacher workspace' : 'Student workspace';
+  return <main className="dashboard-page"><header className="dashboard-header"><div><p className="eyebrow">School Management System</p><h1>Welcome, {admin.name}.</h1><p className="intro-copy">{label} · Your account has secure, role-based access.</p></div><div className="header-actions"><button className="logout-button" type="button" onClick={onToggleTheme}>{darkMode ? 'Light mode' : 'Dark mode'}</button><button className="logout-button" type="button" onClick={onLogout}>Sign out</button></div></header><section className="portal-hero"><p className="card-kicker">Your workspace</p><h2>{label}</h2><p>School announcements relevant to your role appear below.</p></section><section className="notice-grid">{notices.length ? notices.map((notice) => <article className={`notice-card priority-${notice.priority.toLowerCase()}`} key={notice._id}><p>{notice.priority}</p><h2>{notice.title}</h2><span>{notice.body}</span></article>) : <p className="empty-search">No announcements are available right now.</p>}</section></main>;
+}
+
+function OperationsHub({ onBack }) {
+  const [tab, setTab] = useState('subjects');
+  const [items, setItems] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [message, setMessage] = useState('');
+  const [subject, setSubject] = useState({ name: '', code: '', className: '', teacher: '', fullMarks: 100 });
+  const [routine, setRoutine] = useState({ className: '', section: '', day: 'Sunday', subject: '', teacher: '', startTime: '', endTime: '', room: '' });
+  const [notice, setNotice] = useState({ title: '', body: '', audience: 'All', priority: 'Normal', expiresAt: '' });
+  const [promotion, setPromotion] = useState({ studentIds: [], className: '', section: '' });
+  const [reportId, setReportId] = useState(''); const [report, setReport] = useState(null);
+  const token = () => sessionStorage.getItem('schoolAdminToken');
+  async function load() {
+    const path = tab === 'subjects' ? '/api/subjects' : tab === 'routines' ? '/api/routines' : tab === 'notices' ? '/api/notices' : '/api/students';
+    try { const response = await fetch(path, { headers: { Authorization: `Bearer ${token()}` } }); const data = await response.json(); if (!response.ok) throw new Error(data.message || 'Unable to load data.'); setItems(data.subjects || data.routines || data.notices || data.students || []); if (tab === 'promotion' || tab === 'reports') setStudents(data.students || []); setMessage(''); } catch (error) { setMessage(error.message); }
+  }
+  useEffect(() => { setItems([]); setReport(null); load(); }, [tab]);
+  async function save(path, payload, clear) { try { const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify(payload) }); const data = await response.json(); if (!response.ok) throw new Error(data.message || 'Unable to save.'); setMessage(data.message); clear(); load(); } catch (error) { setMessage(error.message); } }
+  async function remove(path, id) { if (!window.confirm('Delete this record?')) return; try { const response = await fetch(`${path}/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } }); const data = await response.json(); if (!response.ok) throw new Error(data.message); setMessage(data.message); load(); } catch (error) { setMessage(error.message); } }
+  async function loadReport() { if (!reportId) return; try { const response = await fetch(`/api/reports/report-card/${reportId}`, { headers: { Authorization: `Bearer ${token()}` } }); const data = await response.json(); if (!response.ok) throw new Error(data.message); setReport(data); setMessage(''); } catch (error) { setMessage(error.message); } }
+  const tabs = [['subjects', 'Subjects'], ['routines', 'Routine'], ['notices', 'Notices'], ['promotion', 'Promotion'], ['reports', 'Report card']];
+  return <main className="records-page"><header className="dashboard-header"><div><p className="eyebrow">Academic operations</p><h1>School control center</h1><p className="intro-copy">Plan learning, publish notices, promote students, and produce report cards.</p></div><button type="button" className="logout-button" onClick={onBack}>Back to dashboard</button></header><nav className="module-tabs">{tabs.map(([id, label]) => <button type="button" className={tab === id ? 'active' : ''} onClick={() => setTab(id)} key={id}>{label}</button>)}</nav>{message && <p className="form-message" role="status">{message}</p>}
+  {tab === 'subjects' && <><form className="compact-form" onSubmit={(event) => { event.preventDefault(); save('/api/subjects', subject, () => setSubject({ name: '', code: '', className: '', teacher: '', fullMarks: 100 })); }}><label>Subject<input value={subject.name} onChange={(event) => setSubject({ ...subject, name: event.target.value })} required /></label><label>Code<input value={subject.code} onChange={(event) => setSubject({ ...subject, code: event.target.value })} required /></label><label>Class<input value={subject.className} onChange={(event) => setSubject({ ...subject, className: event.target.value })} required /></label><label>Teacher<input value={subject.teacher} onChange={(event) => setSubject({ ...subject, teacher: event.target.value })} /></label><label>Full marks<input type="number" min="1" value={subject.fullMarks} onChange={(event) => setSubject({ ...subject, fullMarks: event.target.value })} /></label><button>Add subject</button></form><DataTable rows={items} fields={['name', 'code', 'className', 'teacher', 'fullMarks']} onDelete={(id) => remove('/api/subjects', id)} /></>}
+  {tab === 'routines' && <><form className="compact-form" onSubmit={(event) => { event.preventDefault(); save('/api/routines', routine, () => setRoutine({ className: '', section: '', day: 'Sunday', subject: '', teacher: '', startTime: '', endTime: '', room: '' })); }}><label>Class<input value={routine.className} onChange={(event) => setRoutine({ ...routine, className: event.target.value })} required /></label><label>Section<input value={routine.section} onChange={(event) => setRoutine({ ...routine, section: event.target.value })} required /></label><label>Day<select value={routine.day} onChange={(event) => setRoutine({ ...routine, day: event.target.value })}>{['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'].map((day) => <option key={day}>{day}</option>)}</select></label><label>Subject<input value={routine.subject} onChange={(event) => setRoutine({ ...routine, subject: event.target.value })} required /></label><label>Teacher<input value={routine.teacher} onChange={(event) => setRoutine({ ...routine, teacher: event.target.value })} /></label><label>Start<input type="time" value={routine.startTime} onChange={(event) => setRoutine({ ...routine, startTime: event.target.value })} required /></label><label>End<input type="time" value={routine.endTime} onChange={(event) => setRoutine({ ...routine, endTime: event.target.value })} required /></label><label>Room<input value={routine.room} onChange={(event) => setRoutine({ ...routine, room: event.target.value })} /></label><button>Add routine</button></form><DataTable rows={items} fields={['className', 'section', 'day', 'subject', 'teacher', 'startTime', 'endTime', 'room']} onDelete={(id) => remove('/api/routines', id)} /></>}
+  {tab === 'notices' && <><form className="notice-form" onSubmit={(event) => { event.preventDefault(); save('/api/notices', notice, () => setNotice({ title: '', body: '', audience: 'All', priority: 'Normal', expiresAt: '' })); }}><label>Title<input value={notice.title} onChange={(event) => setNotice({ ...notice, title: event.target.value })} required /></label><label>Audience<select value={notice.audience} onChange={(event) => setNotice({ ...notice, audience: event.target.value })}>{['All', 'Admin', 'Teacher', 'Student'].map((value) => <option key={value}>{value}</option>)}</select></label><label>Priority<select value={notice.priority} onChange={(event) => setNotice({ ...notice, priority: event.target.value })}>{['Normal', 'Important', 'Urgent'].map((value) => <option key={value}>{value}</option>)}</select></label><label>Expiry<input type="date" value={notice.expiresAt} onChange={(event) => setNotice({ ...notice, expiresAt: event.target.value })} /></label><label className="full-width">Message<textarea value={notice.body} onChange={(event) => setNotice({ ...notice, body: event.target.value })} required /></label><button className="full-width">Publish notice</button></form><div className="notice-grid">{items.map((item) => <article className={`notice-card priority-${item.priority.toLowerCase()}`} key={item._id}><p>{item.priority} · {item.audience}</p><h2>{item.title}</h2><span>{item.body}</span><button type="button" className="table-button danger-button" onClick={() => remove('/api/notices', item._id)}>Delete</button></article>)}</div></>}
+  {tab === 'promotion' && <section className="promotion-card"><h2>Promote selected students</h2><p>Select students, then enter the destination class and section.</p><div className="promotion-controls"><input placeholder="Next class" value={promotion.className} onChange={(event) => setPromotion({ ...promotion, className: event.target.value })} /><input placeholder="Next section" value={promotion.section} onChange={(event) => setPromotion({ ...promotion, section: event.target.value })} /><button type="button" onClick={() => save('/api/promotions', promotion, () => setPromotion({ studentIds: [], className: '', section: '' }))}>Promote selected ({promotion.studentIds.length})</button></div><div className="check-list">{students.map((student) => <label key={student._id}><input type="checkbox" checked={promotion.studentIds.includes(student._id)} onChange={() => setPromotion({ ...promotion, studentIds: promotion.studentIds.includes(student._id) ? promotion.studentIds.filter((id) => id !== student._id) : [...promotion.studentIds, student._id] })} />{student.name} · {student.studentId} · {student.className}-{student.section}</label>)}</div></section>}
+  {tab === 'reports' && <section className="report-card-panel"><div className="report-selector"><select value={reportId} onChange={(event) => setReportId(event.target.value)}><option value="">Select a student</option>{students.map((student) => <option value={student.studentId} key={student._id}>{student.name} ({student.studentId})</option>)}</select><button type="button" onClick={loadReport}>Generate report card</button>{report && <button type="button" className="logout-button" onClick={() => window.print()}>Print / Save PDF</button>}</div>{report && <article className="official-report"><p className="eyebrow">Official academic report</p><h2>{report.student.name}</h2><p>{report.student.studentId} · {report.student.className}-{report.student.section} · Roll {report.student.rollNumber}</p><div className="summary-grid"><article className="summary-card"><p>Average score</p><strong>{report.summary.average}%</strong></article><article className="summary-card"><p>Attendance</p><strong>{report.summary.attendance.percentage}%</strong></article><article className="summary-card"><p>Subjects</p><strong>{report.summary.subjects}</strong></article></div><DataTable rows={report.results} fields={['subject', 'examType', 'obtainedMarks', 'fullMarks', 'percentage', 'grade']} /></article>}</section>}</main>;
+}
+
+function DataTable({ rows, fields, onDelete }) { return <div className="table-wrap"><table><thead><tr>{fields.map((field) => <th key={field}>{field.replace(/([A-Z])/g, ' $1')}</th>)}{onDelete && <th>Action</th>}</tr></thead><tbody>{rows.map((row) => <tr key={row._id}>{fields.map((field) => <td key={field}>{row[field] ?? '—'}</td>)}{onDelete && <td><button type="button" className="table-button danger-button" onClick={() => onDelete(row._id)}>Delete</button></td>}</tr>)}</tbody></table>{!rows.length && <p className="empty-search">No records yet.</p>}</div>; }
+
+function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClasses, onViewAttendance, onViewResults, onViewSettings, onViewOperations, darkMode, onToggleTheme }) {
   const [summary, setSummary] = useState(null);
   const [message, setMessage] = useState('Loading dashboard summary...');
   const [notifications, setNotifications] = useState([]);
@@ -79,6 +129,7 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClas
           <button type="button" className="students-button" onClick={onViewClasses}>Classes</button>
           <button type="button" className="students-button" onClick={onViewAttendance}>Attendance</button>
           <button type="button" className="students-button" onClick={onViewResults}>Results</button>
+          <button type="button" className="students-button" onClick={onViewOperations}>Academics</button>
           <button type="button" className="logout-button" onClick={onToggleTheme}>{darkMode ? 'Light mode' : 'Dark mode'}</button>
           <button type="button" className="logout-button" onClick={onViewSettings}>Settings</button>
           <button type="button" className="logout-button" onClick={() => window.print()}>Save PDF</button>
@@ -646,6 +697,9 @@ export default function App() {
   }
 
   if (admin) {
+    if (admin.role && admin.role !== 'admin') {
+      return <RolePortal admin={admin} onLogout={handleLogout} darkMode={darkMode} onToggleTheme={() => setDarkMode((value) => !value)} />;
+    }
     if (page === 'students') {
       return <StudentList onBack={() => setPage('dashboard')} onAddStudent={() => setPage('studentAdd')} onEditStudent={(student) => { setSelectedStudent(student); setPage('studentEdit'); }} />;
     }
@@ -676,13 +730,16 @@ export default function App() {
     if (page === 'results') {
       return <ResultPage onBack={() => setPage('dashboard')} />;
     }
+    if (page === 'operations') {
+      return <OperationsHub onBack={() => setPage('dashboard')} />;
+    }
     if (page === 'teacherAdd') {
       return <TeacherForm onBack={() => setPage('teachers')} />;
     }
     if (page === 'teacherEdit') {
       return <TeacherForm teacher={selectedTeacher} onBack={() => { setSelectedTeacher(null); setPage('teachers'); }} />;
     }
-    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} onViewClasses={() => setPage('classes')} onViewAttendance={() => setPage('attendance')} onViewResults={() => setPage('results')} onViewSettings={() => setPage('settings')} darkMode={darkMode} onToggleTheme={() => setDarkMode((value) => !value)} />;
+    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} onViewClasses={() => setPage('classes')} onViewAttendance={() => setPage('attendance')} onViewResults={() => setPage('results')} onViewOperations={() => setPage('operations')} onViewSettings={() => setPage('settings')} darkMode={darkMode} onToggleTheme={() => setDarkMode((value) => !value)} />;
   }
 
   return (
@@ -696,6 +753,8 @@ export default function App() {
         <p className="intro-copy">
           A secure workspace for administrators to organize student and teacher information.
         </p>
+        <BangladeshClock />
+        <PublicNotices />
       </section>
 
       <section className="login-card" aria-labelledby="login-title">

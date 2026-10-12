@@ -58,6 +58,11 @@ h2 { font-size: 2rem; }
 .intro-copy, .card-copy { color: #53667f; line-height: 1.65; }
 
 .intro-copy { max-width: 470px; font-size: 1.08rem; }
+.bd-clock { display: inline-flex; margin: 1.4rem 0 0; padding: .55rem .8rem; border: 1px solid #c9dcef; border-radius: 999px; color: #315475; background: rgba(255, 255, 255, .58); font-size: .8rem; font-weight: 750; }
+.login-notice { display: grid; gap: .55rem; max-width: 500px; margin-top: 1.25rem; padding: 1rem 1.1rem; border: 1px solid rgba(162, 195, 231, .8); border-radius: 1rem; background: rgba(255, 255, 255, .54); }
+.login-notice .card-kicker { margin: 0; }
+.login-notice article { display: grid; gap: .25rem; }
+.login-notice span { color: #486480; font-size: .9rem; line-height: 1.45; }
 
 .card-copy { margin: .65rem 0 2rem; }
 
@@ -230,6 +235,37 @@ tr:last-child td { border-bottom: 0; }
 .notification-item { margin-top: .8rem; padding: .85rem 1rem; border-left: 4px solid #2165ba; border-radius: .45rem; background: #eef5ff; }
 .notification-item.is-read { border-left-color: #b5c4d8; background: #f6f8fb; }
 .notification-item p { margin: .2rem 0 0; color: #52667f; }
+.module-tabs { display: flex; flex-wrap: wrap; gap: .65rem; margin: 0 0 1.5rem; }
+.module-tabs button { margin: 0; padding: .65rem .95rem; color: #315475; background: #e7eff9; }
+.module-tabs button.active { color: #fff; background: linear-gradient(135deg, #155fbb, #3488df); }
+.compact-form, .notice-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; max-width: 1100px; margin-bottom: 1.5rem; padding: 1.35rem; border: 1px solid #dbe5f2; border-radius: 1rem; background: #fff; box-shadow: 0 12px 32px rgba(27, 72, 120, .06); }
+.compact-form label, .notice-form label { display: grid; gap: .42rem; margin: 0; }
+.compact-form button, .notice-form button { align-self: end; margin: 0; }
+textarea { min-height: 110px; padding: .82rem .9rem; border: 1px solid #bdcce0; border-radius: .55rem; color: #10233f; font: inherit; resize: vertical; }
+.notice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(245px, 1fr)); gap: 1rem; max-width: 1000px; }
+.notice-card { display: grid; gap: .55rem; padding: 1.15rem; border: 1px solid #dce6f3; border-radius: 1rem; background: #fff; box-shadow: 0 10px 25px rgba(27, 72, 120, .06); }
+.notice-card p { margin: 0; color: #2767b3; font-size: .74rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.notice-card h2 { font-size: 1.15rem; }
+.notice-card span { color: #52667f; line-height: 1.55; }
+.notice-card button { width: fit-content; }
+.priority-important { border-top: 4px solid #e39a19; }
+.priority-urgent { border-top: 4px solid #ce3c48; }
+.promotion-card, .report-card-panel, .portal-hero { max-width: 1050px; padding: 1.5rem; border: 1px solid #dbe5f2; border-radius: 1.15rem; background: #fff; box-shadow: 0 12px 32px rgba(27, 72, 120, .06); }
+.promotion-card p, .portal-hero p { color: #52667f; }
+.promotion-controls, .report-selector { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin: 1rem 0; }
+.promotion-controls input, .report-selector select { width: auto; min-width: 180px; }
+.promotion-controls button, .report-selector button { margin: 0; }
+.check-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: .6rem; max-height: 420px; overflow: auto; padding-top: .65rem; }
+.check-list label { display: flex; align-items: center; gap: .55rem; margin: 0; padding: .65rem; border: 1px solid #e0e9f4; border-radius: .65rem; font-weight: 650; }
+.check-list input { width: auto; }
+.official-report { margin-top: 1.5rem; padding: 1.5rem; border: 2px solid #174f90; border-radius: 1rem; background: #fff; }
+.portal-hero { background: linear-gradient(135deg, #e9f3ff, #fff); }
+
+.dark-theme .bd-clock, .dark-theme .login-notice, .dark-theme .notice-card, .dark-theme .compact-form, .dark-theme .notice-form, .dark-theme .promotion-card, .dark-theme .report-card-panel, .dark-theme .portal-hero, .dark-theme .official-report { background: rgba(17, 39, 69, .94); border-color: #294f79; color: #eaf2ff; }
+.dark-theme .login-notice span, .dark-theme .notice-card span, .dark-theme .promotion-card p, .dark-theme .portal-hero p { color: #b9cbe2; }
+.dark-theme textarea { color: #eaf2ff; background: #0f2238; border-color: #42678f; }
+.dark-theme .module-tabs button { color: #dcecff; background: #203c5c; }
+.dark-theme .check-list label { border-color: #294f79; }
 
 @media (max-width: 760px) {
   .login-page { grid-template-columns: 1fr; gap: 2.5rem; padding: 2rem 1.25rem; }
@@ -242,6 +278,7 @@ tr:last-child td { border-bottom: 0; }
   .settings-grid { grid-template-columns: 1fr; }
   .attendance-controls { align-items: stretch; flex-direction: column; }
   .result-form { flex-direction: column; align-items: stretch; }
+  .compact-form, .notice-form { grid-template-columns: 1fr; }
   .result-form label { width: 100%; }
   .full-width { grid-column: auto; }
   .summary-grid { grid-template-columns: 1fr; }
