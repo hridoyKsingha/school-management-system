@@ -23,6 +23,7 @@ studentRouter.post('/', requireAdmin, async (request, response) => {
     dateOfBirth,
     guardianPhone,
     address,
+    photoUrl,
   } = request.body;
 
   if (!studentId || !name || !className || !section || !rollNumber || !dateOfBirth || !guardianPhone || !address) {
@@ -39,6 +40,7 @@ studentRouter.post('/', requireAdmin, async (request, response) => {
       dateOfBirth,
       guardianPhone,
       address,
+      photoUrl: photoUrl || '',
     });
 
     return response.status(201).json({ message: 'Student created.', student });
@@ -61,6 +63,7 @@ studentRouter.put('/:id', requireAdmin, async (request, response) => {
     dateOfBirth,
     guardianPhone,
     address,
+    photoUrl,
   } = request.body;
 
   if (!studentId || !name || !className || !section || !rollNumber || !dateOfBirth || !guardianPhone || !address) {
@@ -70,7 +73,7 @@ studentRouter.put('/:id', requireAdmin, async (request, response) => {
   try {
     const student = await Student.findByIdAndUpdate(
       request.params.id,
-      { studentId, name, className, section, rollNumber, dateOfBirth, guardianPhone, address },
+      { studentId, name, className, section, rollNumber, dateOfBirth, guardianPhone, address, photoUrl: photoUrl || '' },
       { new: true, runValidators: true },
     );
 

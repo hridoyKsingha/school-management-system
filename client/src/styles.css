@@ -154,6 +154,8 @@ button:disabled { cursor: wait; opacity: .65; }
 }
 
 .record-form label { display: grid; gap: .45rem; margin: 0; }
+.profile-preview { width: 72px; height: 72px; object-fit: cover; border: 1px solid #b9cbe2; border-radius: 50%; }
+.upload-status { color: #1b5e38; font-weight: 650; }
 .full-width { grid-column: 1 / -1; }
 .record-form button { margin-top: 0; }
 .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; max-width: 1100px; }
@@ -227,4 +229,10 @@ tr:last-child td { border-bottom: 0; }
   .summary-grid { grid-template-columns: 1fr; }
   .bar-row { grid-template-columns: 90px 1fr 28px; gap: .55rem; font-size: .82rem; }
   .attendance-summary { flex-direction: column; }
+}
+
+@media print {
+  .header-actions, button, .search-input, .record-form, .attendance-controls, .result-form { display: none !important; }
+  body, .dashboard-page, .records-page, .analytics-section, .summary-card, .table-wrapper { background: #fff !important; color: #000 !important; box-shadow: none !important; }
+  .dashboard-page, .records-page { padding: 0 !important; }
 }

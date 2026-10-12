@@ -14,14 +14,14 @@ teacherRouter.get('/', requireAdmin, async (_request, response) => {
 });
 
 teacherRouter.post('/', requireAdmin, async (request, response) => {
-  const { teacherId, name, subject, assignedClass, phone } = request.body;
+  const { teacherId, name, subject, assignedClass, phone, photoUrl } = request.body;
 
   if (!teacherId || !name || !subject || !assignedClass || !phone) {
     return response.status(400).json({ message: 'All teacher fields are required.' });
   }
 
   try {
-    const teacher = await Teacher.create({ teacherId, name, subject, assignedClass, phone });
+    const teacher = await Teacher.create({ teacherId, name, subject, assignedClass, phone, photoUrl: photoUrl || '' });
     return response.status(201).json({ message: 'Teacher created.', teacher });
   } catch (error) {
     if (error.code === 11000) {
@@ -33,7 +33,7 @@ teacherRouter.post('/', requireAdmin, async (request, response) => {
 });
 
 teacherRouter.put('/:id', requireAdmin, async (request, response) => {
-  const { teacherId, name, subject, assignedClass, phone } = request.body;
+  const { teacherId, name, subject, assignedClass, phone, photoUrl } = request.body;
 
   if (!teacherId || !name || !subject || !assignedClass || !phone) {
     return response.status(400).json({ message: 'All teacher fields are required.' });
@@ -42,7 +42,7 @@ teacherRouter.put('/:id', requireAdmin, async (request, response) => {
   try {
     const teacher = await Teacher.findByIdAndUpdate(
       request.params.id,
-      { teacherId, name, subject, assignedClass, phone },
+      { teacherId, name, subject, assignedClass, phone, photoUrl: photoUrl || '' },
       { new: true, runValidators: true },
     );
 

@@ -5,6 +5,26 @@ function getStoredAdmin() {
   return storedAdmin ? JSON.parse(storedAdmin) : null;
 }
 
+function ProfilePhotoField({ value, onChange }) {
+  const [status, setStatus] = useState('');
+  async function uploadImage(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setStatus('Uploading image...');
+    try {
+      const payload = new FormData();
+      payload.append('image', file);
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch('/api/uploads/profile-image', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: payload });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Image upload failed.');
+      onChange(data.imageUrl);
+      setStatus('Photo uploaded successfully.');
+    } catch (error) { setStatus(error.message); }
+  }
+  return <label className="full-width">Profile photo <input type="file" accept="image/*" onChange={uploadImage} />{value && <img className="profile-preview" src={value} alt="Profile preview" />}{status && <small className="upload-status">{status}</small>}</label>;
+}
+
 function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClasses, onViewAttendance, onViewResults, onViewSettings, darkMode, onToggleTheme }) {
   const [summary, setSummary] = useState(null);
   const [message, setMessage] = useState('Loading dashboard summary...');
@@ -54,6 +74,7 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClas
           <button type="button" className="students-button" onClick={onViewResults}>Results</button>
           <button type="button" className="logout-button" onClick={onToggleTheme}>{darkMode ? 'Light mode' : 'Dark mode'}</button>
           <button type="button" className="logout-button" onClick={onViewSettings}>Settings</button>
+          <button type="button" className="logout-button" onClick={() => window.print()}>Save PDF</button>
           <button type="button" className="logout-button" onClick={onLogout}>Sign out</button>
         </div>
       </header>
@@ -453,8 +474,8 @@ function TeacherList({ onBack, onAddTeacher, onEditTeacher }) {
 function TeacherForm({ onBack, teacher }) {
   const isEditing = Boolean(teacher);
   const [form, setForm] = useState(() => teacher ? {
-    teacherId: teacher.teacherId, name: teacher.name, subject: teacher.subject, assignedClass: teacher.assignedClass, phone: teacher.phone,
-  } : { teacherId: '', name: '', subject: '', assignedClass: '', phone: '' });
+    teacherId: teacher.teacherId, name: teacher.name, subject: teacher.subject, assignedClass: teacher.assignedClass, phone: teacher.phone, photoUrl: teacher.photoUrl || '',
+  } : { teacherId: '', name: '', subject: '', assignedClass: '', phone: '', photoUrl: '' });
   const [message, setMessage] = useState('');
 
   async function handleSubmit(event) {
@@ -469,7 +490,7 @@ function TeacherForm({ onBack, teacher }) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Unable to add teacher.');
       setMessage(isEditing ? 'Teacher updated successfully.' : 'Teacher added successfully.');
-      if (!isEditing) setForm({ teacherId: '', name: '', subject: '', assignedClass: '', phone: '' });
+      if (!isEditing) setForm({ teacherId: '', name: '', subject: '', assignedClass: '', phone: '', photoUrl: '' });
     } catch (error) {
       setMessage(error.message);
     }
@@ -487,6 +508,7 @@ function TeacherForm({ onBack, teacher }) {
         <label>Subject<input value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })} required /></label>
         <label>Assigned class<input value={form.assignedClass} onChange={(event) => setForm({ ...form, assignedClass: event.target.value })} required /></label>
         <label className="full-width">Phone<input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} required /></label>
+        <ProfilePhotoField value={form.photoUrl} onChange={(photoUrl) => setForm({ ...form, photoUrl })} />
         <button type="submit" className="full-width">{isEditing ? 'Save changes' : 'Add teacher'}</button>
       </form>
       {message && <p className="form-message" role="status">{message}</p>}
@@ -498,9 +520,9 @@ function StudentForm({ onBack, student }) {
   const isEditing = Boolean(student);
   const [form, setForm] = useState(() => student ? {
     studentId: student.studentId, name: student.name, className: student.className, section: student.section,
-    rollNumber: student.rollNumber, dateOfBirth: student.dateOfBirth.slice(0, 10), guardianPhone: student.guardianPhone, address: student.address,
+    rollNumber: student.rollNumber, dateOfBirth: student.dateOfBirth.slice(0, 10), guardianPhone: student.guardianPhone, address: student.address, photoUrl: student.photoUrl || '',
   } : {
-    studentId: '', name: '', className: '', section: '', rollNumber: '', dateOfBirth: '', guardianPhone: '', address: '',
+    studentId: '', name: '', className: '', section: '', rollNumber: '', dateOfBirth: '', guardianPhone: '', address: '', photoUrl: '',
   });
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -529,7 +551,7 @@ function StudentForm({ onBack, student }) {
 
       setMessage(isEditing ? 'Student updated successfully.' : 'Student added successfully.');
       if (!isEditing) {
-        setForm({ studentId: '', name: '', className: '', section: '', rollNumber: '', dateOfBirth: '', guardianPhone: '', address: '' });
+        setForm({ studentId: '', name: '', className: '', section: '', rollNumber: '', dateOfBirth: '', guardianPhone: '', address: '', photoUrl: '' });
       }
     } catch (error) {
       setMessage(error.message);
@@ -553,6 +575,7 @@ function StudentForm({ onBack, student }) {
         <label>Date of birth<input type="date" name="dateOfBirth" value={form.dateOfBirth} onChange={updateField} required /></label>
         <label>Guardian phone<input name="guardianPhone" value={form.guardianPhone} onChange={updateField} required /></label>
         <label className="full-width">Address<input name="address" value={form.address} onChange={updateField} required /></label>
+        <ProfilePhotoField value={form.photoUrl} onChange={(photoUrl) => setForm({ ...form, photoUrl })} />
         <button type="submit" className="full-width" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : isEditing ? 'Save changes' : 'Add student'}</button>
       </form>
       {message && <p className="form-message" role="status">{message}</p>}

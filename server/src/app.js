@@ -8,6 +8,7 @@ import dashboardRouter from './routes/dashboardRoutes.js';
 import resultRouter from './routes/resultRoutes.js';
 import studentRouter from './routes/studentRoutes.js';
 import teacherRouter from './routes/teacherRoutes.js';
+import uploadRouter from './routes/uploadRoutes.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/api/dashboard', dashboardRouter);
 app.use('/api/results', resultRouter);
 app.use('/api/students', studentRouter);
 app.use('/api/teachers', teacherRouter);
+app.use('/api/uploads', uploadRouter);
 
 app.get('/api/health', (_request, response) => {
   response.json({ status: 'ok', service: 'school-management-api' });

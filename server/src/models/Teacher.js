@@ -7,6 +7,7 @@ const teacherSchema = new mongoose.Schema(
     subject: { type: String, required: true, trim: true },
     assignedClass: { type: String, required: true, trim: true },
     phone: { type: String, required: true, trim: true },
+    photoUrl: { type: String, default: '', trim: true },
   },
   { timestamps: true },
 );
