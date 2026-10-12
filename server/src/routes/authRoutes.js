@@ -138,4 +138,26 @@ authRouter.put('/change-email', requireAdmin, async (request, response) => {
   }
 });
 
+authRouter.get('/users', requireAdmin, async (_request, response) => {
+  try {
+    const users = await Admin.find().select('name email role createdAt').sort({ createdAt: -1 });
+    return response.json({ users: users.map((user) => ({ ...user.toObject(), role: user.role || 'admin' })) });
+  } catch { return response.status(500).json({ message: 'Unable to load user accounts.' }); }
+});
+
+authRouter.post('/users', requireAdmin, async (request, response) => {
+  const { name, email, password, role } = request.body;
+  if (!name?.trim() || !email?.trim() || !password || !['teacher', 'student'].includes(role)) {
+    return response.status(400).json({ message: 'Name, email, password, and a valid teacher or student role are required.' });
+  }
+  if (password.length < 8) return response.status(400).json({ message: 'Password must contain at least 8 characters.' });
+  try {
+    const user = await Admin.create({ name: name.trim(), email: email.trim().toLowerCase(), password: await bcrypt.hash(password, 12), role });
+    return response.status(201).json({ message: `${role[0].toUpperCase()}${role.slice(1)} account created.`, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+  } catch (error) {
+    if (error.code === 11000) return response.status(409).json({ message: 'This email address is already in use.' });
+    return response.status(500).json({ message: 'Unable to create user account.' });
+  }
+});
+
 export default authRouter;

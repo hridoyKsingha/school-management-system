@@ -66,6 +66,10 @@ School Management System is a full-stack web application built for school admini
 - Subject-wise results with automatic percentage and grade calculation
 - Dashboard enrollment chart and attendance insights
 - Persistent dark-mode preference and administrator account settings
+- Role-based account foundation: administrators can create teacher and student accounts
+- Cloudinary-ready student and teacher profile-photo upload (5 MB image limit)
+- In-app activity notifications for new records, attendance, and results
+- Printable dashboard report via **Save PDF** in the browser print dialog
 - Clear empty states, confirmation before deleting, and manual dashboard refresh
 - Persistent cloud database with MongoDB Atlas
 - Production deployment on Vercel
@@ -145,6 +149,9 @@ PORT=5000
 MONGODB_URI=your_mongodb_atlas_connection_string
 JWT_SECRET=your_long_random_secret
 CLIENT_URL=http://localhost:5173
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 > Never commit `.env`, database credentials, or JWT secrets.
@@ -174,12 +181,15 @@ Open [http://localhost:5173](http://localhost:5173).
 | GET | `/api/health` | API health check |
 | POST | `/api/auth/register` | Create the first administrator account |
 | POST | `/api/auth/login` | Sign in and receive a JWT |
+| GET/POST | `/api/auth/users` | List or create teacher/student user accounts |
 | GET | `/api/dashboard/summary` | Get dashboard totals |
 | GET/POST/PUT/DELETE | `/api/students` | Manage student records |
 | GET/POST/PUT/DELETE | `/api/teachers` | Manage teacher records |
 | GET/POST/PUT/DELETE | `/api/classes` | Manage class and section records |
 | GET, POST | `/api/attendance` | View and save daily attendance |
 | GET/POST/PUT/DELETE | `/api/results` | Manage subject results and grades |
+| POST | `/api/uploads/profile-image` | Upload a student or teacher photo to Cloudinary |
+| GET/PUT | `/api/notifications` | View and mark activity notifications read |
 
 All record-management routes require a valid administrator JWT token.
 
@@ -187,9 +197,9 @@ All record-management routes require a valid administrator JWT token.
 
 | Model | Main fields |
 | --- | --- |
-| Administrator | Name, email, password hash |
-| Student | Student ID, name, class, section, roll, date of birth, guardian phone, address |
-| Teacher | Teacher ID, name, subject, assigned class, phone |
+| User account | Name, email, bcrypt password hash, role (admin/teacher/student) |
+| Student | Student ID, name, class, section, roll, date of birth, guardian phone, address, photo URL |
+| Teacher | Teacher ID, name, subject, assigned class, phone, photo URL |
 | SchoolClass | Class name, section, class teacher, room number |
 | Attendance | Student, date, present/absent status, note |
 | Result | Student, subject, exam, marks, percentage, grade |
@@ -210,7 +220,7 @@ For Vercel connectivity, MongoDB Atlas must permit the deployment's network acce
 
 ## Cloudinary Image Storage
 
-Cloudinary is **not enabled in the current version**. It is planned for a future release to store student profile photos and teacher photos securely in cloud storage. The planned flow is: image upload → Cloudinary URL saved in MongoDB → image displayed in the React profile page.
+Cloudinary securely stores student and teacher profile photos. Add `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` to local `server/.env` and Vercel environment variables. The flow is: image upload → Cloudinary URL returned → URL saved in MongoDB with the record.
 
 ## Risks and Challenges
 
@@ -234,6 +244,7 @@ Cloudinary is **not enabled in the current version**. It is planned for a future
 - [x] Dashboard analytics and dark mode
 - [x] MongoDB Atlas persistence
 - [x] Vercel deployment and `/api/health` check
+- [x] Cloudinary upload integration, printable PDF report, role-based account API, and activity notifications
 
 ## Collaboration and Git Workflow
 
