@@ -5,7 +5,7 @@ function getStoredAdmin() {
   return storedAdmin ? JSON.parse(storedAdmin) : null;
 }
 
-function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClasses, onViewAttendance, onViewResults, onViewSettings }) {
+function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClasses, onViewAttendance, onViewResults, onViewSettings, darkMode, onToggleTheme }) {
   const [summary, setSummary] = useState(null);
   const [message, setMessage] = useState('Loading dashboard summary...');
 
@@ -52,6 +52,7 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClas
           <button type="button" className="students-button" onClick={onViewClasses}>Classes</button>
           <button type="button" className="students-button" onClick={onViewAttendance}>Attendance</button>
           <button type="button" className="students-button" onClick={onViewResults}>Results</button>
+          <button type="button" className="logout-button" onClick={onToggleTheme}>{darkMode ? 'Light mode' : 'Dark mode'}</button>
           <button type="button" className="logout-button" onClick={onViewSettings}>Settings</button>
           <button type="button" className="logout-button" onClick={onLogout}>Sign out</button>
         </div>
@@ -569,6 +570,12 @@ export default function App() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [selectedClass, setSelectedClass] = useState(null);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('schoolTheme') === 'dark');
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark-theme', darkMode);
+    localStorage.setItem('schoolTheme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -644,7 +651,7 @@ export default function App() {
     if (page === 'teacherEdit') {
       return <TeacherForm teacher={selectedTeacher} onBack={() => { setSelectedTeacher(null); setPage('teachers'); }} />;
     }
-    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} onViewClasses={() => setPage('classes')} onViewAttendance={() => setPage('attendance')} onViewResults={() => setPage('results')} onViewSettings={() => setPage('settings')} />;
+    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} onViewClasses={() => setPage('classes')} onViewAttendance={() => setPage('attendance')} onViewResults={() => setPage('results')} onViewSettings={() => setPage('settings')} darkMode={darkMode} onToggleTheme={() => setDarkMode((value) => !value)} />;
   }
 
   return (

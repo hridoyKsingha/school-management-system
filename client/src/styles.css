@@ -4,6 +4,16 @@
   background: #eef4fb;
 }
 
+:root.dark-theme { color: #eaf2ff; background: #0d1c30; }
+.dark-theme .login-page, .dark-theme .dashboard-page, .dark-theme .records-page { background: #0d1c30; }
+.dark-theme .login-page { background: radial-gradient(circle at 12% 10%, #193b67 0, transparent 31%), #0d1c30; }
+.dark-theme h1, .dark-theme h2, .dark-theme label, .dark-theme .summary-card, .dark-theme .analytics-section, .dark-theme .record-form, .dark-theme .result-form, .dark-theme .table-wrap, .dark-theme .empty-state { color: #eaf2ff; }
+.dark-theme .login-card, .dark-theme .summary-card, .dark-theme .analytics-section, .dark-theme .record-form, .dark-theme .result-form, .dark-theme .table-wrap, .dark-theme .empty-state { background: #142942; border-color: #29486c; box-shadow: none; }
+.dark-theme .intro-copy, .dark-theme .card-copy, .dark-theme .summary-card p, .dark-theme .empty-state p, .dark-theme th, .dark-theme .empty-search { color: #b9cbe2; }
+.dark-theme input, .dark-theme select, .dark-theme .attendance-controls select, .dark-theme .result-form select, .dark-theme .status-select { color: #eaf2ff; background: #0f2238; border-color: #42678f; }
+.dark-theme td { border-color: #29486c; }
+.dark-theme .logout-button, .dark-theme .refresh-button { background: #203c5c; color: #dcecff; }
+
 * { box-sizing: border-box; }
 
 body { margin: 0; }
