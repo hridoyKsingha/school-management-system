@@ -692,7 +692,7 @@ export default function App() {
       </button>
       <section className="login-intro" aria-label="School Management System introduction">
         <p className="eyebrow">School Management System</p>
-        <h1>Manage school records with confidence.</h1>
+        <h1>Manage School records with confidence.</h1>
         <p className="intro-copy">
           A secure workspace for administrators to organize student and teacher information.
         </p>

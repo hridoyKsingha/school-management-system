@@ -4,11 +4,11 @@
   background: #eef4fb;
 }
 
-:root.dark-theme { color: #eaf2ff; background: #0d1c30; }
-.dark-theme .login-page, .dark-theme .dashboard-page, .dark-theme .records-page { background: #0d1c30; }
-.dark-theme .login-page { background: radial-gradient(circle at 12% 10%, #193b67 0, transparent 31%), #0d1c30; }
+:root.dark-theme { color: #eef5ff; background: #08172b; }
+.dark-theme .login-page, .dark-theme .dashboard-page, .dark-theme .records-page { background: #08172b; }
+.dark-theme .login-page { background: radial-gradient(circle at 9% 8%, #173c71 0, transparent 33%), radial-gradient(circle at 90% 88%, #172c54 0, transparent 35%), #08172b; }
 .dark-theme h1, .dark-theme h2, .dark-theme label, .dark-theme .summary-card, .dark-theme .analytics-section, .dark-theme .record-form, .dark-theme .result-form, .dark-theme .table-wrap, .dark-theme .empty-state { color: #eaf2ff; }
-.dark-theme .login-card, .dark-theme .summary-card, .dark-theme .analytics-section, .dark-theme .record-form, .dark-theme .result-form, .dark-theme .table-wrap, .dark-theme .empty-state { background: #142942; border-color: #29486c; box-shadow: none; }
+.dark-theme .login-card, .dark-theme .summary-card, .dark-theme .analytics-section, .dark-theme .record-form, .dark-theme .result-form, .dark-theme .table-wrap, .dark-theme .empty-state { background: rgba(17, 39, 69, .94); border-color: #294f79; box-shadow: 0 28px 72px rgba(0, 0, 0, .28); }
 .dark-theme .intro-copy, .dark-theme .card-copy, .dark-theme .summary-card p, .dark-theme .empty-state p, .dark-theme th, .dark-theme .empty-search { color: #b9cbe2; }
 .dark-theme input, .dark-theme select, .dark-theme .attendance-controls select, .dark-theme .result-form select, .dark-theme .status-select { color: #eaf2ff; background: #0f2238; border-color: #42678f; }
 .dark-theme td { border-color: #29486c; }
@@ -29,13 +29,16 @@ select { font: inherit; }
   align-items: center;
   gap: 5rem;
   padding: 3rem max(2rem, calc((100vw - 1120px) / 2));
-  background: radial-gradient(circle at 12% 10%, #d7eaff 0, transparent 31%), #f7faff;
+  overflow: hidden;
+  background: radial-gradient(circle at 8% 8%, #cfe7ff 0, transparent 33%), radial-gradient(circle at 90% 88%, #d8ecff 0, transparent 36%), #f5f9ff;
 }
 
-.login-theme-toggle { position: absolute; top: 1.5rem; right: max(2rem, calc((100vw - 1120px) / 2)); margin: 0; padding: .6rem .85rem; background: #e8eff8; color: #1b4c85; }
+.login-page::before { content: ''; position: absolute; width: 540px; height: 540px; right: -180px; top: -230px; border: 1px solid rgba(34, 104, 192, .13); border-radius: 50%; box-shadow: 0 0 0 55px rgba(34, 104, 192, .045), 0 0 0 110px rgba(34, 104, 192, .025); pointer-events: none; }
+
+.login-theme-toggle { position: absolute; z-index: 1; top: 1.5rem; right: max(2rem, calc((100vw - 1120px) / 2)); margin: 0; padding: .6rem .9rem; border: 1px solid #d4e2f3; background: rgba(255, 255, 255, .75); color: #174c87; box-shadow: 0 7px 18px rgba(25, 70, 120, .07); }
 .dark-theme .login-theme-toggle { background: #203c5c; color: #dcecff; }
 
-.login-intro { max-width: 570px; }
+.login-intro { position: relative; z-index: 1; max-width: 570px; }
 
 .eyebrow, .card-kicker {
   margin: 0 0 1rem;
@@ -48,7 +51,7 @@ select { font: inherit; }
 
 h1, h2 { margin: 0; letter-spacing: -.035em; }
 
-h1 { font-size: clamp(2.5rem, 5vw, 4.75rem); line-height: 1.03; }
+h1 { font-size: clamp(2.5rem, 5vw, 4.75rem); line-height: 1.03; color: #102b52; }
 
 h2 { font-size: 2rem; }
 
@@ -59,11 +62,14 @@ h2 { font-size: 2rem; }
 .card-copy { margin: .65rem 0 2rem; }
 
 .login-card {
+  position: relative;
+  z-index: 1;
   padding: 2.4rem;
-  border: 1px solid #dbe5f2;
+  border: 1px solid rgba(185, 207, 234, .9);
   border-radius: 1.25rem;
-  background: #fff;
-  box-shadow: 0 24px 60px rgba(32, 71, 119, .13);
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 26px 70px rgba(31, 74, 125, .17);
+  backdrop-filter: blur(10px);
 }
 
 .login-form { display: grid; gap: .65rem; }
@@ -86,11 +92,13 @@ button {
   padding: .9rem 1rem;
   border: 0;
   border-radius: .55rem;
-  background: #145bb2;
+  background: linear-gradient(135deg, #1465c5, #1c73d6);
   color: #fff;
   font-weight: 800;
   cursor: pointer;
 }
+
+button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(20, 91, 178, .2); }
 
 button:hover:not(:disabled) { background: #0d4a94; }
 button:disabled { cursor: wait; opacity: .65; }
