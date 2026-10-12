@@ -1,10 +1,17 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import Admin from '../models/Admin.js';
 
 const authRouter = Router();
+
+function createMailTransport() {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
+  return nodemailer.createTransport({ host: process.env.SMTP_HOST, port: Number(process.env.SMTP_PORT || 587), secure: Number(process.env.SMTP_PORT) === 465, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } });
+}
 
 authRouter.post('/register', async (request, response) => {
   const { name, email, password } = request.body;
@@ -74,6 +81,37 @@ authRouter.post('/login', async (request, response) => {
   }
 });
 
+authRouter.post('/request-password-reset', async (request, response) => {
+  const email = request.body.email?.trim().toLowerCase();
+  const transport = createMailTransport();
+  if (!transport) return response.status(503).json({ message: 'Password reset email is not configured yet. Add SMTP environment variables.' });
+  if (!email) return response.status(400).json({ message: 'Email address is required.' });
+  try {
+    const user = await Admin.findOne({ email }).select('+resetCodeHash +resetCodeExpiresAt');
+    if (user) {
+      const code = crypto.randomInt(100000, 1000000).toString();
+      user.resetCodeHash = await bcrypt.hash(code, 10);
+      user.resetCodeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      await user.save();
+      await transport.sendMail({ from: process.env.SMTP_FROM || process.env.SMTP_USER, to: user.email, subject: 'School Management System password reset code', text: `Your verification code is ${code}. It expires in 10 minutes.` });
+    }
+    return response.json({ message: 'If the account exists, a six-digit reset code was sent.' });
+  } catch { return response.status(500).json({ message: 'Unable to send reset code.' }); }
+});
+
+authRouter.post('/reset-password', async (request, response) => {
+  const { email, code, newPassword } = request.body;
+  if (!email?.trim() || !code || !newPassword) return response.status(400).json({ message: 'Email, reset code, and new password are required.' });
+  if (newPassword.length < 8) return response.status(400).json({ message: 'Password must contain at least 8 characters.' });
+  try {
+    const user = await Admin.findOne({ email: email.trim().toLowerCase() }).select('+password +resetCodeHash +resetCodeExpiresAt');
+    const valid = user && user.resetCodeHash && user.resetCodeExpiresAt > new Date() && await bcrypt.compare(String(code), user.resetCodeHash);
+    if (!valid) return response.status(400).json({ message: 'The reset code is invalid or expired.' });
+    user.password = await bcrypt.hash(newPassword, 12); user.resetCodeHash = null; user.resetCodeExpiresAt = null; await user.save();
+    return response.json({ message: 'Password reset successfully. You can now sign in.' });
+  } catch { return response.status(500).json({ message: 'Unable to reset password.' }); }
+});
+
 authRouter.put('/change-password', requireAdmin, async (request, response) => {
   const { currentPassword, newPassword } = request.body;
 
@@ -140,19 +178,19 @@ authRouter.put('/change-email', requireAdmin, async (request, response) => {
 
 authRouter.get('/users', requireAdmin, async (_request, response) => {
   try {
-    const users = await Admin.find().select('name email role createdAt').sort({ createdAt: -1 });
+    const users = await Admin.find().select('name email role linkedStudent createdAt').populate('linkedStudent', 'name studentId').sort({ createdAt: -1 });
     return response.json({ users: users.map((user) => ({ ...user.toObject(), role: user.role || 'admin' })) });
   } catch { return response.status(500).json({ message: 'Unable to load user accounts.' }); }
 });
 
 authRouter.post('/users', requireAdmin, async (request, response) => {
-  const { name, email, password, role } = request.body;
-  if (!name?.trim() || !email?.trim() || !password || !['teacher', 'student'].includes(role)) {
-    return response.status(400).json({ message: 'Name, email, password, and a valid teacher or student role are required.' });
+  const { name, email, password, role, linkedStudentId = '' } = request.body;
+  if (!name?.trim() || !email?.trim() || !password || !['teacher', 'student', 'guardian'].includes(role)) {
+    return response.status(400).json({ message: 'Name, email, password, and a valid teacher, student, or guardian role are required.' });
   }
   if (password.length < 8) return response.status(400).json({ message: 'Password must contain at least 8 characters.' });
   try {
-    const user = await Admin.create({ name: name.trim(), email: email.trim().toLowerCase(), password: await bcrypt.hash(password, 12), role });
+    const user = await Admin.create({ name: name.trim(), email: email.trim().toLowerCase(), password: await bcrypt.hash(password, 12), role, linkedStudent: linkedStudentId || null });
     return response.status(201).json({ message: `${role[0].toUpperCase()}${role.slice(1)} account created.`, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
     if (error.code === 11000) return response.status(409).json({ message: 'This email address is already in use.' });

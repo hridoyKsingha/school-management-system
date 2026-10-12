@@ -70,6 +70,10 @@ School Management System is a full-stack web application built for school admini
 - Cloudinary-ready student and teacher profile-photo upload (5 MB image limit)
 - In-app activity notifications for new records, attendance, and results
 - Printable dashboard report via **Save PDF** in the browser print dialog
+- Subject catalogue, class routines, academic notices, and bulk student promotion
+- Printable student report cards with result and attendance summaries
+- Teacher, student, and guardian accounts with role-based portals
+- Bangladesh date/time, public login notices, password reset flow, rate limiting, and audit logs
 - Clear empty states, confirmation before deleting, and manual dashboard refresh
 - Persistent cloud database with MongoDB Atlas
 - Production deployment on Vercel
@@ -152,6 +156,11 @@ CLIENT_URL=http://localhost:5173
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+SMTP_HOST=your_smtp_host
+SMTP_PORT=587
+SMTP_USER=your_smtp_user
+SMTP_PASS=your_email_app_password
+SMTP_FROM=your_sender_email
 ```
 
 > Never commit `.env`, database credentials, or JWT secrets.
@@ -181,7 +190,9 @@ Open [http://localhost:5173](http://localhost:5173).
 | GET | `/api/health` | API health check |
 | POST | `/api/auth/register` | Create the first administrator account |
 | POST | `/api/auth/login` | Sign in and receive a JWT |
-| GET/POST | `/api/auth/users` | List or create teacher/student user accounts |
+| GET/POST | `/api/auth/users` | List or create teacher/student/guardian user accounts |
+| POST | `/api/auth/request-password-reset` | Email a six-digit password reset code |
+| POST | `/api/auth/reset-password` | Reset password with the verification code |
 | GET | `/api/dashboard/summary` | Get dashboard totals |
 | GET/POST/PUT/DELETE | `/api/students` | Manage student records |
 | GET/POST/PUT/DELETE | `/api/teachers` | Manage teacher records |
@@ -190,6 +201,11 @@ Open [http://localhost:5173](http://localhost:5173).
 | GET/POST/PUT/DELETE | `/api/results` | Manage subject results and grades |
 | POST | `/api/uploads/profile-image` | Upload a student or teacher photo to Cloudinary |
 | GET/PUT | `/api/notifications` | View and mark activity notifications read |
+| GET/POST/PUT/DELETE | `/api/subjects` | Manage subject catalogue |
+| GET/POST/PUT/DELETE | `/api/routines` | Manage class routine entries |
+| GET/POST/PUT/DELETE | `/api/notices` | Publish and manage notices |
+| POST | `/api/promotions` | Promote selected students to a new class/section |
+| GET | `/api/reports/report-card/:studentId` | Build a printable student report card |
 
 All record-management routes require a valid administrator JWT token.
 
@@ -197,12 +213,16 @@ All record-management routes require a valid administrator JWT token.
 
 | Model | Main fields |
 | --- | --- |
-| User account | Name, email, bcrypt password hash, role (admin/teacher/student) |
+| User account | Name, email, bcrypt password hash, role (admin/teacher/student/guardian) |
 | Student | Student ID, name, class, section, roll, date of birth, guardian phone, address, photo URL |
 | Teacher | Teacher ID, name, subject, assigned class, phone, photo URL |
 | SchoolClass | Class name, section, class teacher, room number |
 | Attendance | Student, date, present/absent status, note |
 | Result | Student, subject, exam, marks, percentage, grade |
+| Subject | Name, code, class, teacher, full marks |
+| Routine | Class, section, day, subject, teacher, time, room |
+| Notice | Title, message, audience, priority, expiry date |
+| Audit log | Actor, action, entity, activity details |
 
 Passwords are stored as bcrypt hashes; plain-text passwords are not saved in the database.
 

@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { requireAdmin } from './middleware/requireAdmin.js';
 import authRouter from './routes/authRoutes.js';
 import attendanceRouter from './routes/attendanceRoutes.js';
@@ -22,7 +23,9 @@ const app = express();
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
 app.use(express.json());
 
-app.use('/api/auth', authRouter);
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-8', legacyHeaders: false, message: { message: 'Too many attempts. Please try again in 15 minutes.' } });
+
+app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/attendance', attendanceRouter);
 app.use('/api/classes', classRouter);
 app.use('/api/dashboard', dashboardRouter);

@@ -104,6 +104,9 @@ button {
 }
 
 button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(20, 91, 178, .2); }
+.text-button { margin: .25rem 0 0; padding: .35rem 0; color: #1d63b8; background: transparent; box-shadow: none; text-align: left; }
+.text-button:hover:not(:disabled) { color: #0b447f; box-shadow: none; transform: none; }
+.dark-theme .text-button { color: #85bcf8; }
 
 button:hover:not(:disabled) { background: #0d4a94; }
 button:disabled { cursor: wait; opacity: .65; }
@@ -260,8 +263,9 @@ textarea { min-height: 110px; padding: .82rem .9rem; border: 1px solid #bdcce0; 
 .check-list input { width: auto; }
 .official-report { margin-top: 1.5rem; padding: 1.5rem; border: 2px solid #174f90; border-radius: 1rem; background: #fff; }
 .portal-hero { background: linear-gradient(135deg, #e9f3ff, #fff); }
+.academic-snapshot { display: grid; gap: 1rem; max-width: 1050px; margin: 1.25rem 0; padding: 1.5rem; border: 1px solid #dbe5f2; border-radius: 1.15rem; background: #fff; box-shadow: 0 12px 32px rgba(27, 72, 120, .06); }
 
-.dark-theme .bd-clock, .dark-theme .login-notice, .dark-theme .notice-card, .dark-theme .compact-form, .dark-theme .notice-form, .dark-theme .promotion-card, .dark-theme .report-card-panel, .dark-theme .portal-hero, .dark-theme .official-report { background: rgba(17, 39, 69, .94); border-color: #294f79; color: #eaf2ff; }
+.dark-theme .bd-clock, .dark-theme .login-notice, .dark-theme .notice-card, .dark-theme .compact-form, .dark-theme .notice-form, .dark-theme .promotion-card, .dark-theme .report-card-panel, .dark-theme .portal-hero, .dark-theme .official-report, .dark-theme .academic-snapshot { background: rgba(17, 39, 69, .94); border-color: #294f79; color: #eaf2ff; }
 .dark-theme .login-notice span, .dark-theme .notice-card span, .dark-theme .promotion-card p, .dark-theme .portal-hero p { color: #b9cbe2; }
 .dark-theme textarea { color: #eaf2ff; background: #0f2238; border-color: #42678f; }
 .dark-theme .module-tabs button { color: #dcecff; background: #203c5c; }
