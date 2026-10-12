@@ -71,6 +71,8 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClas
             ))}
           </div>
         )}
+        {summary?.classDistribution?.length > 0 && <section className="analytics-section" aria-labelledby="distribution-title"><div><p className="card-kicker">Enrollment insights</p><h2 id="distribution-title">Students by class and section</h2></div><div className="bar-chart">{summary.classDistribution.map((item) => <div className="bar-row" key={item.label}><span>{item.label}</span><div className="bar-track"><i style={{ width: `${Math.max(8, (item.total / Math.max(...summary.classDistribution.map((value) => value.total))) * 100)}%` }} /></div><strong>{item.total}</strong></div>)}</div></section>}
+        {(summary?.attendanceSummary?.Present || summary?.attendanceSummary?.Absent) && <section className="attendance-summary"><p><strong>{summary.attendanceSummary.Present || 0}</strong> attendance records marked present</p><p><strong>{summary.attendanceSummary.Absent || 0}</strong> attendance records marked absent</p></section>}
       </section>
     </main>
   );
