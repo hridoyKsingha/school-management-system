@@ -5,7 +5,7 @@ function getStoredAdmin() {
   return storedAdmin ? JSON.parse(storedAdmin) : null;
 }
 
-function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClasses, onViewAttendance, onViewSettings }) {
+function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClasses, onViewAttendance, onViewResults, onViewSettings }) {
   const [summary, setSummary] = useState(null);
   const [message, setMessage] = useState('Loading dashboard summary...');
 
@@ -51,6 +51,7 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClas
           <button type="button" className="students-button" onClick={onViewTeachers}>Teachers</button>
           <button type="button" className="students-button" onClick={onViewClasses}>Classes</button>
           <button type="button" className="students-button" onClick={onViewAttendance}>Attendance</button>
+          <button type="button" className="students-button" onClick={onViewResults}>Results</button>
           <button type="button" className="logout-button" onClick={onViewSettings}>Settings</button>
           <button type="button" className="logout-button" onClick={onLogout}>Sign out</button>
         </div>
@@ -73,6 +74,47 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClas
       </section>
     </main>
   );
+}
+
+function ResultPage({ onBack }) {
+  const [students, setStudents] = useState([]);
+  const [results, setResults] = useState([]);
+  const [form, setForm] = useState({ student: '', subject: '', examType: 'Final', fullMarks: 100, obtainedMarks: '' });
+  const [editingId, setEditingId] = useState(null);
+  const [message, setMessage] = useState('Loading results...');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  async function loadData() {
+    try {
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const [studentResponse, resultResponse] = await Promise.all([fetch('/api/students', { headers: { Authorization: `Bearer ${token}` } }), fetch('/api/results', { headers: { Authorization: `Bearer ${token}` } })]);
+      const studentData = await studentResponse.json(); const resultData = await resultResponse.json();
+      if (!studentResponse.ok) throw new Error(studentData.message || 'Unable to load students.');
+      if (!resultResponse.ok) throw new Error(resultData.message || 'Unable to load results.');
+      setStudents(studentData.students); setResults(resultData.results); setMessage('');
+    } catch (error) { setMessage(error.message); }
+  }
+
+  useEffect(() => { loadData(); }, []);
+
+  async function submitResult(event) {
+    event.preventDefault();
+    try {
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch(editingId ? `/api/results/${editingId}` : '/api/results', { method: editingId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...form, fullMarks: Number(form.fullMarks), obtainedMarks: Number(form.obtainedMarks) }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Unable to save result.');
+      setForm({ student: '', subject: '', examType: 'Final', fullMarks: 100, obtainedMarks: '' }); setEditingId(null); setMessage(data.message); loadData();
+    } catch (error) { setMessage(error.message); }
+  }
+
+  async function deleteResult(result) {
+    if (!window.confirm(`Delete ${result.subject} result for ${result.student?.name}?`)) return;
+    try { const token = sessionStorage.getItem('schoolAdminToken'); const response = await fetch(`/api/results/${result._id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }); const data = await response.json(); if (!response.ok) throw new Error(data.message || 'Unable to delete result.'); setResults((items) => items.filter((item) => item._id !== result._id)); setMessage(data.message); } catch (error) { setMessage(error.message); }
+  }
+
+  const visibleResults = results.filter((result) => `${result.student?.name || ''} ${result.student?.studentId || ''} ${result.subject}`.toLowerCase().includes(searchTerm.toLowerCase()));
+  return <main className="records-page"><header className="dashboard-header"><div><p className="eyebrow">School Management System</p><h1>Result & grade management</h1></div><button type="button" className="logout-button" onClick={onBack}>Back to dashboard</button></header><form className="result-form" onSubmit={submitResult}><label>Student<select value={form.student} onChange={(event) => setForm({ ...form, student: event.target.value })} required><option value="">Select student</option>{students.map((student) => <option key={student._id} value={student._id}>{student.name} ({student.studentId})</option>)}</select></label><label>Subject<input value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })} required /></label><label>Exam<select value={form.examType} onChange={(event) => setForm({ ...form, examType: event.target.value })}><option>Final</option><option>Midterm</option><option>Class Test</option></select></label><label>Full marks<input type="number" min="1" value={form.fullMarks} onChange={(event) => setForm({ ...form, fullMarks: event.target.value })} required /></label><label>Obtained marks<input type="number" min="0" max={form.fullMarks} value={form.obtainedMarks} onChange={(event) => setForm({ ...form, obtainedMarks: event.target.value })} required /></label><button type="submit">{editingId ? 'Update result' : 'Add result'}</button>{editingId && <button type="button" className="logout-button" onClick={() => { setEditingId(null); setForm({ student: '', subject: '', examType: 'Final', fullMarks: 100, obtainedMarks: '' }); }}>Cancel edit</button>}</form>{message && <p className="form-message" role="status">{message}</p>}<input className="search-input" type="search" placeholder="Search by student, ID, or subject" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} />{!message && <div className="table-wrap"><table><thead><tr><th>Student</th><th>Subject</th><th>Exam</th><th>Marks</th><th>Percentage</th><th>Grade</th><th>Action</th></tr></thead><tbody>{visibleResults.map((result) => <tr key={result._id}><td>{result.student?.name}<br /><small>{result.student?.studentId}</small></td><td>{result.subject}</td><td>{result.examType}</td><td>{result.obtainedMarks}/{result.fullMarks}</td><td>{result.percentage}%</td><td><strong className={`grade grade-${result.grade.replace('+', 'plus').replace('-', 'minus')}`}>{result.grade}</strong></td><td className="table-actions"><button type="button" className="table-button" onClick={() => { setEditingId(result._id); setForm({ student: result.student?._id, subject: result.subject, examType: result.examType, fullMarks: result.fullMarks, obtainedMarks: result.obtainedMarks }); }}>Edit</button><button type="button" className="table-button danger-button" onClick={() => deleteResult(result)}>Delete</button></td></tr>)}</tbody></table>{visibleResults.length === 0 && <p className="empty-search">No result records found.</p>}</div>}</main>;
 }
 
 function AttendancePage({ onBack }) {
@@ -591,13 +633,16 @@ export default function App() {
     if (page === 'attendance') {
       return <AttendancePage onBack={() => setPage('dashboard')} />;
     }
+    if (page === 'results') {
+      return <ResultPage onBack={() => setPage('dashboard')} />;
+    }
     if (page === 'teacherAdd') {
       return <TeacherForm onBack={() => setPage('teachers')} />;
     }
     if (page === 'teacherEdit') {
       return <TeacherForm teacher={selectedTeacher} onBack={() => { setSelectedTeacher(null); setPage('teachers'); }} />;
     }
-    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} onViewClasses={() => setPage('classes')} onViewAttendance={() => setPage('attendance')} onViewSettings={() => setPage('settings')} />;
+    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} onViewClasses={() => setPage('classes')} onViewAttendance={() => setPage('attendance')} onViewResults={() => setPage('results')} onViewSettings={() => setPage('settings')} />;
   }
 
   return (

@@ -151,6 +151,12 @@ button:disabled { cursor: wait; opacity: .65; }
 .attendance-controls label { display: grid; gap: .45rem; margin: 0; }
 .attendance-controls select, .status-select { padding: .72rem .8rem; border: 1px solid #bdcce0; border-radius: .55rem; background: #fff; color: #10233f; }
 .attendance-controls button { margin: 0; }
+.result-form { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; max-width: 1100px; margin-bottom: 1rem; padding: 1.25rem; border: 1px solid #dbe5f2; border-radius: 1rem; background: #fff; }
+.result-form label { display: grid; gap: .45rem; margin: 0; min-width: 150px; flex: 1; }
+.result-form select { padding: .72rem .8rem; border: 1px solid #bdcce0; border-radius: .55rem; background: #fff; color: #10233f; }
+.result-form button { margin: 0; }
+.grade { display: inline-flex; min-width: 2.7rem; justify-content: center; padding: .28rem .5rem; border-radius: .45rem; background: #dcecff; color: #145bb2; }
+.grade-F { background: #ffe1e1; color: #b12f2f; }
 
 .table-button { margin: 0; padding: .45rem .7rem; font-size: .85rem; }
 .table-actions { display: flex; gap: .5rem; }
@@ -197,6 +203,8 @@ tr:last-child td { border-bottom: 0; }
   .record-form { grid-template-columns: 1fr; }
   .settings-grid { grid-template-columns: 1fr; }
   .attendance-controls { align-items: stretch; flex-direction: column; }
+  .result-form { flex-direction: column; align-items: stretch; }
+  .result-form label { width: 100%; }
   .full-width { grid-column: auto; }
   .summary-grid { grid-template-columns: 1fr; }
 }
