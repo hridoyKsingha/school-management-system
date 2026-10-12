@@ -145,6 +145,43 @@ function ClassForm({ onBack, schoolClass }) {
   return <main className="records-page"><header className="dashboard-header"><div><p className="eyebrow">School Management System</p><h1>{isEditing ? 'Edit class' : 'Add class'}</h1></div><button type="button" className="logout-button" onClick={onBack}>Back to classes</button></header><form className="record-form" onSubmit={handleSubmit}><label>Class name<input value={form.className} onChange={(event) => setForm({ ...form, className: event.target.value })} placeholder="Example: Class 10" required /></label><label>Section<input value={form.section} onChange={(event) => setForm({ ...form, section: event.target.value.toUpperCase() })} placeholder="Example: A" required /></label><label>Class teacher<input value={form.classTeacher} onChange={(event) => setForm({ ...form, classTeacher: event.target.value })} placeholder="Optional" /></label><label>Room number<input value={form.roomNumber} onChange={(event) => setForm({ ...form, roomNumber: event.target.value })} placeholder="Optional" /></label><button type="submit" className="full-width">{isEditing ? 'Save changes' : 'Add class'}</button></form>{message && <p className="form-message" role="status">{message}</p>}</main>;
 }
 
+function AccountSettings({ admin, onBack, onAdminUpdated }) {
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [emailForm, setEmailForm] = useState({ currentPassword: '', newEmail: admin.email });
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [emailMessage, setEmailMessage] = useState('');
+
+  async function changePassword(event) {
+    event.preventDefault();
+    setPasswordMessage('');
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) return setPasswordMessage('New passwords do not match.');
+    try {
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch('/api/auth/change-password', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ currentPassword: passwordForm.currentPassword, newPassword: passwordForm.newPassword }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Unable to change password.');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordMessage(data.message);
+    } catch (error) { setPasswordMessage(error.message); }
+  }
+
+  async function changeEmail(event) {
+    event.preventDefault();
+    setEmailMessage('');
+    try {
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch('/api/auth/change-email', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ currentPassword: emailForm.currentPassword, newEmail: emailForm.newEmail }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Unable to change email.');
+      onAdminUpdated(data.admin);
+      setEmailForm({ currentPassword: '', newEmail: data.admin.email });
+      setEmailMessage(data.message);
+    } catch (error) { setEmailMessage(error.message); }
+  }
+
+  return <main className="records-page"><header className="dashboard-header"><div><p className="eyebrow">School Management System</p><h1>Account settings</h1></div><button type="button" className="logout-button" onClick={onBack}>Back to dashboard</button></header><section className="settings-grid"><form className="record-form" onSubmit={changePassword}><div className="full-width"><h2>Change password</h2><p className="card-copy">Use a strong password with at least 8 characters.</p></div><label className="full-width">Current password<input type="password" value={passwordForm.currentPassword} onChange={(event) => setPasswordForm({ ...passwordForm, currentPassword: event.target.value })} autoComplete="current-password" required /></label><label>New password<input type="password" value={passwordForm.newPassword} onChange={(event) => setPasswordForm({ ...passwordForm, newPassword: event.target.value })} autoComplete="new-password" minLength="8" required /></label><label>Confirm password<input type="password" value={passwordForm.confirmPassword} onChange={(event) => setPasswordForm({ ...passwordForm, confirmPassword: event.target.value })} autoComplete="new-password" minLength="8" required /></label><button type="submit" className="full-width">Update password</button>{passwordMessage && <p className="form-message full-width" role="status">{passwordMessage}</p>}</form><form className="record-form" onSubmit={changeEmail}><div className="full-width"><h2>Change email</h2><p className="card-copy">Your current password is required to update the sign-in email.</p></div><label className="full-width">New email address<input type="email" value={emailForm.newEmail} onChange={(event) => setEmailForm({ ...emailForm, newEmail: event.target.value })} autoComplete="email" required /></label><label className="full-width">Current password<input type="password" value={emailForm.currentPassword} onChange={(event) => setEmailForm({ ...emailForm, currentPassword: event.target.value })} autoComplete="current-password" required /></label><button type="submit" className="full-width">Update email</button>{emailMessage && <p className="form-message full-width" role="status">{emailMessage}</p>}</form></section></main>;
+}
+
 function StudentList({ onBack, onAddStudent, onEditStudent }) {
   const [students, setStudents] = useState([]);
   const [message, setMessage] = useState('Loading students...');
@@ -501,6 +538,9 @@ export default function App() {
     }
     if (page === 'classEdit') {
       return <ClassForm schoolClass={selectedClass} onBack={() => { setSelectedClass(null); setPage('classes'); }} />;
+    }
+    if (page === 'settings') {
+      return <AccountSettings admin={admin} onBack={() => setPage('dashboard')} onAdminUpdated={(updatedAdmin) => { sessionStorage.setItem('schoolAdmin', JSON.stringify(updatedAdmin)); setAdmin(updatedAdmin); }} />;
     }
     if (page === 'teacherAdd') {
       return <TeacherForm onBack={() => setPage('teachers')} />;
