@@ -5,7 +5,7 @@ function getStoredAdmin() {
   return storedAdmin ? JSON.parse(storedAdmin) : null;
 }
 
-function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers }) {
+function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers, onViewClasses, onViewSettings }) {
   const [summary, setSummary] = useState(null);
   const [message, setMessage] = useState('Loading dashboard summary...');
 
@@ -49,6 +49,8 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers }) {
         <div className="header-actions">
           <button type="button" className="students-button" onClick={onViewStudents}>Students</button>
           <button type="button" className="students-button" onClick={onViewTeachers}>Teachers</button>
+          <button type="button" className="students-button" onClick={onViewClasses}>Classes</button>
+          <button type="button" className="logout-button" onClick={onViewSettings}>Settings</button>
           <button type="button" className="logout-button" onClick={onLogout}>Sign out</button>
         </div>
       </header>
@@ -70,6 +72,77 @@ function Dashboard({ admin, onLogout, onViewStudents, onViewTeachers }) {
       </section>
     </main>
   );
+}
+
+function ClassList({ onBack, onAddClass, onEditClass }) {
+  const [classes, setClasses] = useState([]);
+  const [message, setMessage] = useState('Loading classes...');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    async function loadClasses() {
+      try {
+        const token = sessionStorage.getItem('schoolAdminToken');
+        const response = await fetch('/api/classes', { headers: { Authorization: `Bearer ${token}` } });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Unable to load classes.');
+        setClasses(data.classes);
+        setMessage('');
+      } catch (error) {
+        setMessage(error.message);
+      }
+    }
+    loadClasses();
+  }, []);
+
+  async function handleDelete(schoolClass) {
+    if (!window.confirm(`Delete ${schoolClass.className} - ${schoolClass.section}?`)) return;
+    try {
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch(`/api/classes/${schoolClass._id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Unable to delete class.');
+      setClasses((items) => items.filter((item) => item._id !== schoolClass._id));
+      setMessage('Class deleted successfully.');
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
+  const filteredClasses = classes.filter((item) => `${item.className} ${item.section} ${item.classTeacher}`.toLowerCase().includes(searchTerm.trim().toLowerCase()));
+
+  return (
+    <main className="records-page">
+      <header className="dashboard-header">
+        <div><p className="eyebrow">School Management System</p><h1>Class & section management</h1></div>
+        <div className="header-actions"><button type="button" className="students-button" onClick={onAddClass}>Add class</button><button type="button" className="logout-button" onClick={onBack}>Back to dashboard</button></div>
+      </header>
+      {message && <p className="form-message" role="status">{message}</p>}
+      <input className="search-input" type="search" placeholder="Search class, section, or teacher" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} />
+      {classes.length > 0 && <div className="table-wrap"><table><thead><tr><th>Class</th><th>Section</th><th>Class teacher</th><th>Room</th><th>Action</th></tr></thead><tbody>{filteredClasses.map((item) => <tr key={item._id}><td>{item.className}</td><td>{item.section}</td><td>{item.classTeacher || '—'}</td><td>{item.roomNumber || '—'}</td><td className="table-actions"><button type="button" className="table-button" onClick={() => onEditClass(item)}>Edit</button><button type="button" className="table-button danger-button" onClick={() => handleDelete(item)}>Delete</button></td></tr>)}</tbody></table>{filteredClasses.length === 0 && <p className="empty-search">No matching class found.</p>}</div>}
+      {!message && classes.length === 0 && <section className="empty-state"><h2>No classes yet</h2><p>Add the first class and section to organize school records.</p><button type="button" onClick={onAddClass}>Add class</button></section>}
+    </main>
+  );
+}
+
+function ClassForm({ onBack, schoolClass }) {
+  const isEditing = Boolean(schoolClass);
+  const [form, setForm] = useState(() => schoolClass ? { className: schoolClass.className, section: schoolClass.section, classTeacher: schoolClass.classTeacher || '', roomNumber: schoolClass.roomNumber || '' } : { className: '', section: '', classTeacher: '', roomNumber: '' });
+  const [message, setMessage] = useState('');
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    try {
+      const token = sessionStorage.getItem('schoolAdminToken');
+      const response = await fetch(isEditing ? `/api/classes/${schoolClass._id}` : '/api/classes', { method: isEditing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(form) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Unable to save class.');
+      setMessage(isEditing ? 'Class updated successfully.' : 'Class added successfully.');
+      if (!isEditing) setForm({ className: '', section: '', classTeacher: '', roomNumber: '' });
+    } catch (error) { setMessage(error.message); }
+  }
+
+  return <main className="records-page"><header className="dashboard-header"><div><p className="eyebrow">School Management System</p><h1>{isEditing ? 'Edit class' : 'Add class'}</h1></div><button type="button" className="logout-button" onClick={onBack}>Back to classes</button></header><form className="record-form" onSubmit={handleSubmit}><label>Class name<input value={form.className} onChange={(event) => setForm({ ...form, className: event.target.value })} placeholder="Example: Class 10" required /></label><label>Section<input value={form.section} onChange={(event) => setForm({ ...form, section: event.target.value.toUpperCase() })} placeholder="Example: A" required /></label><label>Class teacher<input value={form.classTeacher} onChange={(event) => setForm({ ...form, classTeacher: event.target.value })} placeholder="Optional" /></label><label>Room number<input value={form.roomNumber} onChange={(event) => setForm({ ...form, roomNumber: event.target.value })} placeholder="Optional" /></label><button type="submit" className="full-width">{isEditing ? 'Save changes' : 'Add class'}</button></form>{message && <p className="form-message" role="status">{message}</p>}</main>;
 }
 
 function StudentList({ onBack, onAddStudent, onEditStudent }) {
@@ -368,6 +441,7 @@ export default function App() {
   const [page, setPage] = useState('dashboard');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [selectedClass, setSelectedClass] = useState(null);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -419,13 +493,22 @@ export default function App() {
     if (page === 'teachers') {
       return <TeacherList onBack={() => setPage('dashboard')} onAddTeacher={() => setPage('teacherAdd')} onEditTeacher={(teacher) => { setSelectedTeacher(teacher); setPage('teacherEdit'); }} />;
     }
+    if (page === 'classes') {
+      return <ClassList onBack={() => setPage('dashboard')} onAddClass={() => setPage('classAdd')} onEditClass={(schoolClass) => { setSelectedClass(schoolClass); setPage('classEdit'); }} />;
+    }
+    if (page === 'classAdd') {
+      return <ClassForm onBack={() => setPage('classes')} />;
+    }
+    if (page === 'classEdit') {
+      return <ClassForm schoolClass={selectedClass} onBack={() => { setSelectedClass(null); setPage('classes'); }} />;
+    }
     if (page === 'teacherAdd') {
       return <TeacherForm onBack={() => setPage('teachers')} />;
     }
     if (page === 'teacherEdit') {
       return <TeacherForm teacher={selectedTeacher} onBack={() => { setSelectedTeacher(null); setPage('teachers'); }} />;
     }
-    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} />;
+    return <Dashboard admin={admin} onLogout={handleLogout} onViewStudents={() => setPage('students')} onViewTeachers={() => setPage('teachers')} onViewClasses={() => setPage('classes')} onViewSettings={() => setPage('settings')} />;
   }
 
   return (
