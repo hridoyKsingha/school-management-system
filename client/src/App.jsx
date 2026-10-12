@@ -16,8 +16,9 @@ function ProfilePhotoField({ value, onChange }) {
       payload.append('image', file);
       const token = sessionStorage.getItem('schoolAdminToken');
       const response = await fetch('/api/uploads/profile-image', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: payload });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Image upload failed.');
+      const rawBody = await response.text();
+      const data = rawBody ? JSON.parse(rawBody) : {};
+      if (!response.ok) throw new Error(data.message || `Image upload failed (server status ${response.status}).`);
       onChange(data.imageUrl);
       setStatus('Photo uploaded successfully.');
     } catch (error) { setStatus(error.message); }
