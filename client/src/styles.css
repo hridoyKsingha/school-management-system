@@ -77,6 +77,37 @@ h2 { font-size: 2rem; }
   backdrop-filter: blur(10px);
 }
 
+.login-card-heading { display: grid; justify-items: start; }
+.login-back-button { margin: 0 0 1.25rem; padding: .35rem 0; color: #42658b; background: transparent; font-size: .88rem; font-weight: 750; }
+.login-back-button:hover:not(:disabled) { color: #155fbb; background: transparent; box-shadow: none; transform: none; }
+.role-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+.role-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .8rem;
+  min-height: 92px;
+  margin: 0;
+  padding: .9rem;
+  border: 1px solid #d6e3f2;
+  background: rgba(255, 255, 255, .7);
+  color: #173353;
+  text-align: left;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.role-option:hover:not(:disabled) { border-color: #78a8dd; background: #f4f8fe; box-shadow: 0 8px 18px rgba(24, 83, 151, .1); }
+.role-option:focus-visible, .login-back-button:focus-visible { outline: 3px solid #8fc2ff; outline-offset: 3px; }
+.role-icon { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border-radius: .8rem; background: #e5f0ff; color: #155fbb; font-size: .72rem; font-weight: 850; letter-spacing: .04em; }
+.role-option-copy { display: grid; gap: .2rem; min-width: 0; }
+.role-option-copy strong { font-size: .91rem; }
+.role-option-copy small { color: #5b6f88; font-size: .74rem; font-weight: 500; line-height: 1.4; }
+.role-arrow { color: #2c68a9; font-size: 1.1rem; }
+.dark-theme .role-option { border-color: #294f79; background: rgba(17, 39, 69, .85); color: #eaf2ff; }
+.dark-theme .role-option:hover:not(:disabled) { border-color: #568bc5; background: #18395f; }
+.dark-theme .role-option-copy small { color: #b9cbe2; }
+.dark-theme .role-icon { background: #203c5c; color: #a9d0ff; }
+.dark-theme .login-back-button { color: #b9cbe2; }
+
 .login-form { display: grid; gap: .65rem; }
 
 label { margin-top: .65rem; color: #2d405a; font-size: .9rem; font-weight: 700; }
@@ -320,6 +351,11 @@ textarea { min-height: 110px; padding: .82rem .9rem; border: 1px solid #bdcce0; 
   .summary-grid { grid-template-columns: 1fr; }
   .bar-row { grid-template-columns: 90px 1fr 28px; gap: .55rem; font-size: .82rem; }
   .attendance-summary { flex-direction: column; }
+}
+
+@media (max-width: 480px) {
+  .role-options { grid-template-columns: minmax(0, 1fr); }
+  .role-option { min-height: 78px; }
 }
 
 @media (max-height: 680px) and (min-width: 761px) {

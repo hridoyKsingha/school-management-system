@@ -784,6 +784,7 @@ function StudentForm({ onBack, student }) {
 export default function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState(null);
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetMode, setResetMode] = useState(false);
@@ -818,6 +819,10 @@ export default function App() {
 
       if (!response.ok) {
         throw new Error(data.message || 'Unable to sign in.');
+      }
+
+      if ((data.admin?.role || 'admin') !== selectedRole) {
+        throw new Error('This account does not match the selected sign-in type. Please choose the correct account type.');
       }
 
       sessionStorage.setItem('schoolAdminToken', data.token);
@@ -911,11 +916,31 @@ export default function App() {
       </section>
 
       <section className="login-card" aria-labelledby="login-title">
-        <div>
-          <p className="card-kicker">Administrator access</p>
-          <h2 id="login-title">{resetMode ? 'Reset password' : 'Sign in'}</h2>
-          <p className="card-copy">{resetMode ? 'Use your email verification code to set a new password.' : 'Use your administrator account to continue.'}</p>
-        </div>
+        {!selectedRole && !resetMode ? <>
+          <div>
+            <p className="card-kicker">Secure portal access</p>
+            <h2 id="login-title">Choose your account</h2>
+            <p className="card-copy">Select your role to open its dedicated sign-in panel.</p>
+          </div>
+          <div className="role-options" aria-label="Choose account type">
+            {[
+              ['admin', 'Administrator', 'Manage school records and academic operations.', 'AD'],
+              ['teacher', 'Teacher', 'Open your teaching workspace and assigned class details.', 'TE'],
+              ['student', 'Student', 'View your academic profile, attendance, and results.', 'ST'],
+              ['guardian', 'Parent / Guardian', 'Follow the linked learner’s school progress.', 'GU'],
+            ].map(([role, title, description, initials]) => <button type="button" className="role-option" key={role} onClick={() => { setSelectedRole(role); setMessage(''); }}>
+              <span className="role-icon" aria-hidden="true">{initials}</span>
+              <span className="role-option-copy"><strong>{title}</strong><small>{description}</small></span>
+              <span className="role-arrow" aria-hidden="true">→</span>
+            </button>)}
+          </div>
+        </> : <>
+          <div className="login-card-heading">
+            {!resetMode && <button type="button" className="login-back-button" onClick={() => { setSelectedRole(null); setEmail(''); setPassword(''); setMessage(''); }}>← All account types</button>}
+            <p className="card-kicker">{resetMode ? 'Account recovery' : `${selectedRole === 'admin' ? 'Administrator' : selectedRole === 'teacher' ? 'Teacher' : selectedRole === 'guardian' ? 'Parent / Guardian' : 'Student'} access`}</p>
+            <h2 id="login-title">{resetMode ? 'Reset password' : `${selectedRole === 'admin' ? 'Administrator' : selectedRole === 'teacher' ? 'Teacher' : selectedRole === 'guardian' ? 'Parent / Guardian' : 'Student'} sign in`}</h2>
+            <p className="card-copy">{resetMode ? 'Use your email verification code to set a new password.' : `Sign in with the ${selectedRole === 'admin' ? 'administrator' : selectedRole === 'teacher' ? 'teacher' : selectedRole === 'guardian' ? 'parent or guardian' : 'student'} account provided by your school.`}</p>
+          </div>
 
         {!resetMode ? <form onSubmit={handleSubmit} className="login-form">
           <label htmlFor="email">Email address</label>
@@ -943,6 +968,8 @@ export default function App() {
           </button>
           <button type="button" className="text-button" onClick={() => { setResetMode(true); setMessage(''); }}>Forgot password?</button>
         </form> : <form onSubmit={handlePasswordReset} className="login-form"><label>Email address<input type="email" value={resetEmail} onChange={(event) => setResetEmail(event.target.value)} required /></label>{resetStep === 'confirm' && <><label>Six-digit code<input value={resetCode} onChange={(event) => setResetCode(event.target.value)} inputMode="numeric" required /></label><label>New password<input type="password" minLength="8" value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} required /></label></>}<button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Please wait...' : resetStep === 'request' ? 'Send reset code' : 'Reset password'}</button><button type="button" className="text-button" onClick={() => { setResetMode(false); setResetStep('request'); setMessage(''); }}>Back to sign in</button></form>}
+
+        </>}
 
         {message && <p className="form-message" role="status">{message}</p>}
       </section>
