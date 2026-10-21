@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
 import { requireAdmin } from './middleware/requireAdmin.js';
 import authRouter from './routes/authRoutes.js';
 import attendanceRouter from './routes/attendanceRoutes.js';
+import auditRouter from './routes/auditRoutes.js';
 import classRouter from './routes/classRoutes.js';
 import dashboardRouter from './routes/dashboardRoutes.js';
 import resultRouter from './routes/resultRoutes.js';
@@ -20,12 +21,23 @@ import uploadRouter from './routes/uploadRoutes.js';
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+app.use(cors({
+  origin(origin, callback) {
+    // Non-browser clients such as Postman do not send an Origin header.
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('This origin is not allowed by the API CORS policy.'));
+  },
+}));
 app.use(express.json());
 
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-8', legacyHeaders: false, message: { message: 'Too many attempts. Please try again in 15 minutes.' } });
 
 app.use('/api/auth', authLimiter, authRouter);
+app.use('/api/audit-logs', auditRouter);
 app.use('/api/attendance', attendanceRouter);
 app.use('/api/classes', classRouter);
 app.use('/api/dashboard', dashboardRouter);

@@ -14,4 +14,14 @@ notificationRouter.put('/read-all', requireAdmin, async (_request, response) => 
   catch { return response.status(500).json({ message: 'Unable to update notifications.' }); }
 });
 
+notificationRouter.put('/:id/read', requireAdmin, async (request, response) => {
+  try {
+    const notification = await Notification.findByIdAndUpdate(request.params.id, { isRead: true }, { new: true });
+    if (!notification) return response.status(404).json({ message: 'Notification not found.' });
+    return response.json({ message: 'Notification marked as read.', notification });
+  } catch {
+    return response.status(500).json({ message: 'Unable to update notification.' });
+  }
+});
+
 export default notificationRouter;

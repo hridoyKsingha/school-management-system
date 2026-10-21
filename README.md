@@ -59,16 +59,17 @@ School Management System is a full-stack web application built for school admini
 
 - Secure administrator registration and login using JWT
 - Protected administrator dashboard with live summary totals
-- Student management: create, view, update, delete, and search records
-- Teacher management: create, view, update, delete, and search records
+- Student management: create, view, update, delete, filter, search, and paginate records
+- Teacher management: create, view, update, delete, filter, search, and paginate records
 - Class and section management with teacher and room details
 - Daily attendance marking by date and class
 - Subject-wise results with automatic percentage and grade calculation
 - Dashboard enrollment chart and attendance insights
 - Persistent dark-mode preference and administrator account settings
-- Role-based account foundation: administrators can create teacher and student accounts
+- Linked teacher, student, and guardian accounts with role-specific, read-only portals
 - Cloudinary-ready student and teacher profile-photo upload (5 MB image limit)
-- In-app activity notifications for new records, attendance, and results
+- In-app activity notifications with individual and bulk read actions
+- Admin audit history with action, record-type, and date filters
 - Printable dashboard report via **Save PDF** in the browser print dialog
 - Subject catalogue, class routines, academic notices, and bulk student promotion
 - Printable student report cards with result and attendance summaries
@@ -86,7 +87,7 @@ School Management System is a full-stack web application built for school admini
 | Backend | Node.js, Express.js |
 | Database | MongoDB Atlas with Mongoose |
 | Authentication | JSON Web Token (JWT), bcrypt |
-| Deployment | Vercel Serverless Functions |
+| Deployment | Vercel (React client) + Render (Express API) + MongoDB Atlas; Vercel serverless remains supported |
 
 <p align="center">
   <img src="https://skillicons.dev/icons?i=html,css,js,react,vite,nodejs,express,mongodb,git,github,vercel&theme=light" alt="Technology icons: HTML, CSS, JavaScript, React, Vite, Node.js, Express, MongoDB, Git, GitHub, Vercel" />
@@ -104,7 +105,7 @@ flowchart LR
     F --> G[(MongoDB Atlas)]
 ```
 
-The React client calls REST API routes under `/api`. Vercel serves the frontend and runs the Express API as serverless functions. Mongoose connects the API to MongoDB Atlas.
+The React client calls REST API routes under `/api`. The recommended split deployment serves the client from Vercel and the Express API from Render; Mongoose connects the API to MongoDB Atlas. The existing same-origin Vercel serverless setup remains supported when `VITE_API_BASE_URL` is empty.
 
 ## Authentication Flow
 
@@ -124,7 +125,7 @@ sequenceDiagram
     API-->>C: Authorized response
 ```
 
-The token is used only for protected administrator actions such as dashboard, student, and teacher record management.
+The API verifies the JWT and reloads the account role from MongoDB for every protected request. Admin-only CRUD and operational endpoints return 403 to teacher, student, and guardian accounts. Staff/student/guardian accounts receive only their linked, read-only portal data. The browser hides admin screens by role as a usability measure; the server is the actual security boundary.
 
 ## Project Structure
 
@@ -153,6 +154,7 @@ PORT=5000
 MONGODB_URI=your_mongodb_atlas_connection_string
 JWT_SECRET=your_long_random_secret
 CLIENT_URL=http://localhost:5173
+VITE_API_BASE_URL=
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
@@ -190,17 +192,22 @@ Open [http://localhost:5173](http://localhost:5173).
 | GET | `/api/health` | API health check |
 | POST | `/api/auth/register` | Create the first administrator account |
 | POST | `/api/auth/login` | Sign in and receive a JWT |
-| GET/POST | `/api/auth/users` | List or create teacher/student/guardian user accounts |
+| GET/POST/DELETE | `/api/auth/users` | List, create, and remove linked teacher/student/guardian accounts |
 | POST | `/api/auth/request-password-reset` | Email a six-digit password reset code |
 | POST | `/api/auth/reset-password` | Reset password with the verification code |
+| PUT | `/api/auth/change-password` | Change the signed-in administrator's password |
+| PUT | `/api/auth/change-email` | Change the signed-in administrator's email |
 | GET | `/api/dashboard/summary` | Get dashboard totals |
-| GET/POST/PUT/DELETE | `/api/students` | Manage student records |
-| GET/POST/PUT/DELETE | `/api/teachers` | Manage teacher records |
+| GET/POST/PUT/DELETE | `/api/students` | Manage student records; list supports search, class/section filters, and pagination |
+| GET/POST/PUT/DELETE | `/api/teachers` | Manage teacher records; list supports search, subject/class filters, and pagination |
 | GET/POST/PUT/DELETE | `/api/classes` | Manage class and section records |
 | GET, POST | `/api/attendance` | View and save daily attendance |
 | GET/POST/PUT/DELETE | `/api/results` | Manage subject results and grades |
 | POST | `/api/uploads/profile-image` | Upload a student or teacher photo to Cloudinary |
 | GET/PUT | `/api/notifications` | View and mark activity notifications read |
+| PUT | `/api/notifications/:id/read` | Mark one notification read |
+| GET | `/api/audit-logs` | View paginated, filtered administrator activity history |
+| GET | `/api/portal/overview` | Read role-specific teacher, student, or guardian workspace data |
 | GET/POST/PUT/DELETE | `/api/subjects` | Manage subject catalogue |
 | GET/POST/PUT/DELETE | `/api/routines` | Manage class routine entries |
 | GET/POST/PUT/DELETE | `/api/notices` | Publish and manage notices |
@@ -213,7 +220,7 @@ All record-management routes require a valid administrator JWT token.
 
 | Model | Main fields |
 | --- | --- |
-| User account | Name, email, bcrypt password hash, role (admin/teacher/student/guardian) |
+| User account | Name, email, bcrypt password hash, role (admin/teacher/student/guardian), linked teacher/student profile |
 | Student | Student ID, name, class, section, roll, date of birth, guardian phone, address, photo URL |
 | Teacher | Teacher ID, name, subject, assigned class, phone, photo URL |
 | SchoolClass | Class name, section, class teacher, room number |
@@ -228,15 +235,23 @@ Passwords are stored as bcrypt hashes; plain-text passwords are not saved in the
 
 ## Deployment
 
-The app is deployed on Vercel from the repository root. Configure these variables in Vercel for **Production** and **Preview**:
+### Recommended split hosting: Vercel + Render + Atlas
+
+`render.yaml` defines the Express web service and `/api/health` check. Create the Render service from this repository using the Blueprint, then set `MONGODB_URI` and `CLIENT_URL` in Render. `JWT_SECRET` is generated by the Blueprint. Set `CLIENT_URL` to the exact Vercel production URL (and add the preview origin as a comma-separated second origin only if preview access is needed). Never use `0.0.0.0/0` as a permanent database allowlist for production.
+
+In Vercel, configure `VITE_API_BASE_URL` as the Render API origin, with no trailing slash (for example `https://your-api.onrender.com`), for Production and Preview, then redeploy the frontend. Set the same `MONGODB_URI` and `JWT_SECRET` in Vercel only if retaining the existing serverless API deployment. Do not expose database/JWT/Cloudinary secrets as `VITE_*` variables.
+
+The current live Vercel deployment can continue using same-origin serverless routes when `VITE_API_BASE_URL` is empty. These are two supported deployment modes; only the mode whose environment variables and live smoke tests have been completed should be described as production-ready.
+
+### Required API environment
 
 ```text
 MONGODB_URI=your_mongodb_atlas_connection_string
 JWT_SECRET=your_long_random_secret
-CLIENT_URL=https://school-management-system-client-livid.vercel.app
+CLIENT_URL=http://localhost:5173,https://your-vercel-domain.vercel.app
 ```
 
-For Vercel connectivity, MongoDB Atlas must permit the deployment's network access.
+Restrict the Atlas IP access list to the smallest practical set for the chosen hosting environment; verify the provider's current outbound-IP guidance before changing production network rules.
 
 ## Cloudinary Image Storage
 
@@ -252,19 +267,16 @@ Cloudinary securely stores student and teacher profile photos. Add `CLOUDINARY_C
 | Database | Cloud connection availability | MongoDB Atlas with connection error handling |
 | Data quality | Duplicate IDs or missing fields | Schema validation and API validation |
 
-## Testing Checklist
+## Testing and Evaluation
 
-- [x] Administrator login and sign out
-- [x] Dashboard statistics and refresh
-- [x] Student CRUD and search
-- [x] Teacher CRUD and search
-- [x] Class and section CRUD
-- [x] Daily attendance marking
-- [x] Result, percentage, and grade management
-- [x] Dashboard analytics and dark mode
-- [x] MongoDB Atlas persistence
-- [x] Vercel deployment and `/api/health` check
-- [x] Cloudinary upload integration, printable PDF report, role-based account API, and activity notifications
+Run automated server tests with `pnpm --filter server test`, build with `pnpm --filter client build`, and use the Postman collection in `postman/` for API smoke checks. The measurable acceptance targets, UAT checklist, and test procedure are documented in [docs/QUALITY-AND-UAT.md](docs/QUALITY-AND-UAT.md). A checklist is a test plan—not evidence of a successful production test; record actual results during faculty demonstration.
+
+### Proposal alignment and limitations
+
+- Student/teacher CRUD, search, attendance, results, role-aware portals, and operational UI are included in the current implementation.
+- Fees/payments and automated SMS/email notifications remain out of scope. Email-based password reset requires SMTP configuration.
+- Developed as a university **Web Programming Lab and Project** course project (**CSE 300**).
+- Single-member project; user acceptance testing should be performed with faculty or a representative tester before final submission.
 
 ## Collaboration and Git Workflow
 
@@ -278,17 +290,14 @@ This keeps the commit history easy to understand and provides a clear record of 
 
 ## Project Status
 
-The core proposal scope and selected advanced modules are complete. Planned future enhancements include:
+The proposal's core student/teacher record-management workflow is implemented, together with selected optional modules. Future work outside the current scope may include:
 
-- Subject management and teacher-to-subject assignment
-- Student and teacher profile photo upload with Cloudinary
-- Role-based accounts for administrator, teacher, and student
-- Individual teacher and student dashboards
-- Printable reports and PDF export
-- Pagination, filters, and advanced search
-- Password change, account recovery, and audit logs
-- Mobile-first UI improvements and accessibility enhancements
+- Fine-grained teacher permissions for attendance and results entry
+- Fee collection and accounting (excluded from the submitted proposal scope)
+- SMS delivery for notices (requires an external messaging provider)
+- Bulk import/export for large student and teacher datasets
+- Automated database backup and restore workflows
 
 ---
 
-Developed as a university Web Programming Lab project.
+Developed as a university Web Programming Lab and Project course project · CSE 300.

@@ -3,6 +3,7 @@ import { requireAdmin } from '../middleware/requireAdmin.js';
 import Result from '../models/Result.js';
 import Student from '../models/Student.js';
 import { createNotification } from '../utils/notifications.js';
+import { writeAudit } from '../utils/audit.js';
 
 const resultRouter = Router();
 
@@ -41,6 +42,7 @@ resultRouter.post('/', requireAdmin, async (request, response) => {
   const { percentage, grade } = calculateGrade(Number(obtainedMarks), Number(fullMarks));
   try {
     const result = await Result.create({ student, subject, examType, fullMarks, obtainedMarks, percentage, grade });
+    await writeAudit(request, 'Created', 'Result', `${subject} (${examType})`);
     await createNotification('Result published', `${subject} ${examType} result was recorded.`, 'success');
     await result.populate('student', 'studentId name className section rollNumber');
     return response.status(201).json({ message: 'Result created.', result });
@@ -58,6 +60,8 @@ resultRouter.put('/:id', requireAdmin, async (request, response) => {
   try {
     const result = await Result.findByIdAndUpdate(request.params.id, { student, subject, examType, fullMarks, obtainedMarks, percentage, grade }, { new: true, runValidators: true }).populate('student', 'studentId name className section rollNumber');
     if (!result) return response.status(404).json({ message: 'Result not found.' });
+    await writeAudit(request, 'Updated', 'Result', `${subject} (${examType})`);
+    await createNotification('Result updated', `${subject} ${examType} result was updated.`, 'info');
     return response.json({ message: 'Result updated.', result });
   } catch (error) {
     if (error.code === 11000) return response.status(409).json({ message: 'A result for this subject and exam already exists.' });
@@ -69,6 +73,8 @@ resultRouter.delete('/:id', requireAdmin, async (request, response) => {
   try {
     const result = await Result.findByIdAndDelete(request.params.id);
     if (!result) return response.status(404).json({ message: 'Result not found.' });
+    await writeAudit(request, 'Deleted', 'Result', `${result.subject} (${result.examType})`);
+    await createNotification('Result deleted', `${result.subject} ${result.examType} result was removed.`, 'warning');
     return response.json({ message: 'Result deleted.' });
   } catch {
     return response.status(500).json({ message: 'Unable to delete result.' });

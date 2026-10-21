@@ -30,8 +30,7 @@ export async function requireAuthenticated(request, response, next) {
 
 export async function requireAdmin(request, response, next) {
   return requireAuthenticated(request, response, () => {
-    if ((request.admin.role || 'admin') !== 'admin') return response.status(403).json({ message: 'Administrator access is required.' });
-    return next();
+    return requireRole('admin')(request, response, next);
   });
 }
 

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: school-management-system-api
+    runtime: node
+    rootDir: server
+    buildCommand: cd .. && corepack pnpm install --frozen-lockfile
+    startCommand: node src/index.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        sync: false

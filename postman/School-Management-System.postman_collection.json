@@ -1,0 +1,52 @@
+{
+  "info": {
+    "name": "School Management System API",
+    "description": "Smoke and acceptance-test requests. Use a disposable database and never export real credentials or student data.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "adminEmail", "value": "" },
+    { "key": "adminPassword", "value": "" },
+    { "key": "token", "value": "" },
+    { "key": "studentId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/health" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('API is healthy', () => pm.response.to.have.status(200));", "pm.test('Health response is JSON and ok', () => pm.expect(pm.response.json().status).to.eql('ok'));" ] } }]
+    },
+    {
+      "name": "Admin login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/api/auth/login"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Login succeeds', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.token, 'JWT token').to.be.a('string').and.not.empty;", "pm.collectionVariables.set('token', body.token);", "pm.test('Admin role is returned', () => pm.expect(body.admin.role).to.eql('admin'));" ] } }]
+    },
+    {
+      "name": "Protected route rejects missing token",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/students" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Missing token is rejected', () => pm.response.to.have.status(401));"] } }]
+    },
+    {
+      "name": "Dashboard summary",
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/dashboard/summary" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Dashboard is authorized', () => pm.response.to.have.status(200));", "pm.test('Counts are present', () => { const b = pm.response.json(); pm.expect(b).to.have.property('totalStudents'); pm.expect(b).to.have.property('totalTeachers'); pm.expect(b).to.have.property('totalClasses'); });"] } }]
+    },
+    {
+      "name": "List students",
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/students?search={{studentId}}&page=1&limit=10" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Student list loads', () => pm.response.to.have.status(200));", "pm.test('List and pagination are returned', () => { const b = pm.response.json(); pm.expect(b.students).to.be.an('array'); pm.expect(b.pagination).to.be.an('object'); });"] } }]
+    },
+    {
+      "name": "Teacher role must not access admin records (manual role-token check)",
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/students" },
+      "description": "Replace token with a teacher/student/guardian JWT; expected response is HTTP 403. Restore the admin token before running other requests.",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Staff role cannot access admin records', () => pm.response.to.have.status(403));"] } }]
+    }
+  ]
+}
