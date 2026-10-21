@@ -915,12 +915,12 @@ export default function App() {
         <PublicNotices />
       </section>
 
-      <section className="login-card" aria-labelledby="login-title">
+      <section className={`login-card${!selectedRole && !resetMode ? ' role-picker-card' : ''}`} aria-labelledby="login-title">
         {!selectedRole && !resetMode ? <>
-          <div>
+          <div className="role-picker-heading">
             <p className="card-kicker">Secure portal access</p>
-            <h2 id="login-title">Choose your account</h2>
-            <p className="card-copy">Select your role to open its dedicated sign-in panel.</p>
+            <h2 id="login-title">Welcome to your school portal</h2>
+            <p className="card-copy">Choose your account type to continue to the right sign-in page.</p>
           </div>
           <div className="role-options" aria-label="Choose account type">
             {[
@@ -934,6 +934,7 @@ export default function App() {
               <span className="role-arrow" aria-hidden="true">→</span>
             </button>)}
           </div>
+          <p className="role-picker-note"><span aria-hidden="true">✓</span> Sign in with the account provided by your school.</p>
         </> : <>
           <div className="login-card-heading">
             {!resetMode && <button type="button" className="login-back-button" onClick={() => { setSelectedRole(null); setEmail(''); setPassword(''); setMessage(''); }}>← All account types</button>}

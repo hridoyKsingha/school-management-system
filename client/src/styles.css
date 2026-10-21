@@ -25,9 +25,9 @@ select { font: inherit; }
   position: relative;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 470px);
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 500px);
   align-items: center;
-  gap: 5rem;
+  gap: clamp(2.5rem, 5vw, 4.5rem);
   padding: 3rem max(2rem, calc((100vw - 1120px) / 2));
   overflow-x: clip;
   background: radial-gradient(circle at 8% 8%, #cfe7ff 0, transparent 33%), radial-gradient(circle at 90% 88%, #d8ecff 0, transparent 36%), #f5f9ff;
@@ -38,7 +38,7 @@ select { font: inherit; }
 .login-theme-toggle { position: absolute; z-index: 1; top: 1.5rem; right: max(2rem, calc((100vw - 1120px) / 2)); margin: 0; padding: .6rem .9rem; border: 1px solid #d4e2f3; background: rgba(255, 255, 255, .75); color: #174c87; box-shadow: 0 7px 18px rgba(25, 70, 120, .07); }
 .dark-theme .login-theme-toggle { background: #203c5c; color: #dcecff; }
 
-.login-intro { position: relative; z-index: 1; max-width: 570px; }
+.login-intro { position: relative; z-index: 1; max-width: 540px; }
 
 .eyebrow, .card-kicker {
   margin: 0 0 1rem;
@@ -78,6 +78,9 @@ h2 { font-size: 2rem; }
 }
 
 .login-card-heading { display: grid; justify-items: start; }
+.role-picker-heading h2 { max-width: 14ch; font-size: clamp(1.7rem, 2.5vw, 2.15rem); line-height: 1.12; }
+.role-picker-heading .card-copy { margin: .7rem 0 1.6rem; }
+.role-picker-card { padding: clamp(1.8rem, 3vw, 2.5rem); }
 .login-back-button { margin: 0 0 1.25rem; padding: .35rem 0; color: #42658b; background: transparent; font-size: .88rem; font-weight: 750; }
 .login-back-button:hover:not(:disabled) { color: #155fbb; background: transparent; box-shadow: none; transform: none; }
 .role-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
@@ -86,26 +89,31 @@ h2 { font-size: 2rem; }
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: .8rem;
-  min-height: 92px;
+  min-height: 104px;
   margin: 0;
-  padding: .9rem;
+  padding: 1rem;
   border: 1px solid #d6e3f2;
+  border-radius: .9rem;
   background: rgba(255, 255, 255, .7);
   color: #173353;
   text-align: left;
   transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
 }
-.role-option:hover:not(:disabled) { border-color: #78a8dd; background: #f4f8fe; box-shadow: 0 8px 18px rgba(24, 83, 151, .1); }
+.role-option:hover:not(:disabled) { border-color: #78a8dd; background: #f4f8fe; box-shadow: 0 8px 18px rgba(24, 83, 151, .1); transform: translateY(-2px); }
 .role-option:focus-visible, .login-back-button:focus-visible { outline: 3px solid #8fc2ff; outline-offset: 3px; }
 .role-icon { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border-radius: .8rem; background: #e5f0ff; color: #155fbb; font-size: .72rem; font-weight: 850; letter-spacing: .04em; }
 .role-option-copy { display: grid; gap: .2rem; min-width: 0; }
 .role-option-copy strong { font-size: .91rem; }
 .role-option-copy small { color: #5b6f88; font-size: .74rem; font-weight: 500; line-height: 1.4; }
 .role-arrow { color: #2c68a9; font-size: 1.1rem; }
+.role-picker-note { display: flex; align-items: center; gap: .55rem; margin: 1.2rem 0 0; color: #61748b; font-size: .79rem; line-height: 1.4; }
+.role-picker-note span { display: grid; width: 1.2rem; height: 1.2rem; place-items: center; border-radius: 50%; background: #e6f3ec; color: #23804c; font-size: .72rem; font-weight: 850; }
 .dark-theme .role-option { border-color: #294f79; background: rgba(17, 39, 69, .85); color: #eaf2ff; }
 .dark-theme .role-option:hover:not(:disabled) { border-color: #568bc5; background: #18395f; }
 .dark-theme .role-option-copy small { color: #b9cbe2; }
 .dark-theme .role-icon { background: #203c5c; color: #a9d0ff; }
+.dark-theme .role-picker-note { color: #b9cbe2; }
+.dark-theme .role-picker-note span { background: #1d493a; color: #8fe0b0; }
 .dark-theme .login-back-button { color: #b9cbe2; }
 
 .login-form { display: grid; gap: .65rem; }
@@ -355,7 +363,8 @@ textarea { min-height: 110px; padding: .82rem .9rem; border: 1px solid #bdcce0; 
 
 @media (max-width: 480px) {
   .role-options { grid-template-columns: minmax(0, 1fr); }
-  .role-option { min-height: 78px; }
+  .role-option { min-height: 78px; padding: .85rem; }
+  .role-picker-heading h2 { max-width: 18ch; }
 }
 
 @media (max-height: 680px) and (min-width: 761px) {
