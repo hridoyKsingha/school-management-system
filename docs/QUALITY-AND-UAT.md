@@ -46,5 +46,15 @@ Import `postman/School-Management-System.postman_collection.json` into Postman. 
 ## Scope and evaluation notes
 
 - Fees, payments and automated SMS/email notifications remain explicitly out of scope, consistent with the proposal. Password-reset email requires separately configured SMTP credentials.
-- Course-code discrepancy (proposal says CSE 200; project context may be CSE 300/Project 300) must be confirmed with faculty before changing official academic material.
+- Course code is CSE 300, as confirmed by the student. The submitted proposal PDF may still show CSE 200; correct the official copy if faculty requires it.
 - Do not publish real student personal data or credentials in screenshots, Postman exports, or the public demo.
+
+## Verification record
+
+Date: 2026-11-07 (Asia/Dhaka)
+
+Automated checks completed locally: server tests passed (6/6), frontend production build passed, and the Postman collection JSON parsed successfully.
+
+Production read-only smoke checks completed: frontend returned HTTP 200 and served the latest role-selection UI; `/api/health` returned HTTP 200; unauthenticated `/api/students` returned HTTP 401; `/api/notices/public` returned HTTP 200; a deliberately invalid login returned HTTP 401. These checks confirm the live API responds and its database-backed public/login paths are reachable, but they do not prove successful authentication or write operations.
+
+Still pending: valid administrator sign-in, student/teacher/guardian sign-in and role-isolation checks, production CRUD/attendance/results write-and-cleanup test, and faculty/representative UAT. Do not mark the acceptance checklist as passed until those tests are actually performed with authorized test accounts and non-sensitive test data.
