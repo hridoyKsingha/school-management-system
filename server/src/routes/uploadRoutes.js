@@ -20,8 +20,11 @@ uploadRouter.post('/profile-image', requireAdmin, uploadImage.single('image'), a
       stream.end(request.file.buffer);
     });
     return response.status(201).json({ message: 'Image uploaded.', imageUrl: result.secure_url });
-  } catch {
-    return response.status(500).json({ message: 'Unable to upload image.' });
+  } catch (error) {
+    if (error.http_code === 401 || error.http_code === 403) {
+      return response.status(502).json({ message: 'Cloudinary rejected the configured credentials. Verify the Cloudinary account name, API key, and API secret.' });
+    }
+    return response.status(502).json({ message: 'Cloudinary image storage is unavailable. Check the service configuration and try again.' });
   }
 });
 

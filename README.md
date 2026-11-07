@@ -267,7 +267,7 @@ Cloudinary securely stores student and teacher profile photos. Add `CLOUDINARY_C
 
 ## Testing and Evaluation
 
-Run automated server tests with `pnpm --filter server test`, build with `pnpm --filter client build`, and use the Postman collection in `postman/` for API smoke checks. The measurable acceptance targets, UAT checklist, and test procedure are documented in [docs/QUALITY-AND-UAT.md](docs/QUALITY-AND-UAT.md). A checklist is a test plan—not evidence of a successful production test; record actual results during faculty demonstration.
+Run automated server tests with `pnpm --filter server test`, build with `pnpm --filter client build`, and use the Postman collection in `postman/` for API smoke checks. For full API integration coverage against a disposable Atlas database, run `pnpm --filter server test:uat`; it creates a uniquely named `school_uat_*` database, uses synthetic records, then drops only that test database. The measurable acceptance targets, UAT checklist, and recorded test results are documented in [docs/QUALITY-AND-UAT.md](docs/QUALITY-AND-UAT.md).
 
 ### Proposal alignment and limitations
 
